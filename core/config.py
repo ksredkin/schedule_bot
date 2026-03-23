@@ -1,0 +1,1 @@
+BOT_PHOTO_PATH = "./img/bot.png"
