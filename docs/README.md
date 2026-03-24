@@ -45,6 +45,8 @@
 /start
 /schedule
 /schedule {class}
+/schedule_today
+/schedule_today {class}
 /set_my_class
 ```
 
@@ -52,6 +54,8 @@
 
 * `/schedule` — расписание выбранного класса
 * `/schedule {class}` — расписание конкретного класса (например: `7д`)
+* `/schedule_today` — расписание на сегодня выбранного класса
+* `/schedule_today {class}` — расписание на сегодня конкретного класса (например: `7д`)
 * `/set_my_class` — установить класс по умолчанию
 
 ---
