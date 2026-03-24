@@ -1,9 +1,5 @@
 [tool.poetry]
-name = "schedule-bot"
-version = "0.1.0"
-description = ""
-authors = ["ksredkin <ksredkin0968@gmail.com>"]
-readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.13,<3.15"
@@ -13,6 +9,9 @@ aiohttp-socks = "^0.11.0"
 httpx = "^0.28.1"
 beautifulsoup4 = "^4.14.3"
 lxml = "^6.0.2"
+sqlalchemy = "^2.0.48"
+psycopg2 = "^2.9.11"
+alembic = "^1.18.4"
 
 
 [build-system]

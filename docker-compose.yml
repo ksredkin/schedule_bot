@@ -1,0 +1,40 @@
+services:
+  schedule-postgres:
+    image: postgres:15-alpine
+    container_name: schedule-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - schedule_postgres_data:/var/lib/postgresql/data
+    networks:
+      - schedule-postgres-net
+
+  schedule-bot:
+    build: ./bot
+    container_name: schedule-bot
+    restart: unless-stopped
+    depends_on:
+      - schedule-postgres
+    environment:
+      DB_HOST: schedule-postgres
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      TOKEN: ${TOKEN}
+      PROXY: ${PROXY}
+    volumes:
+      - ./bot:/app
+    networks:
+      - schedule-postgres-net
+
+networks:
+  schedule-postgres-net:
+    driver: bridge
+
+volumes:
+  schedule_postgres_data:
+    name: schedule-postgres-data

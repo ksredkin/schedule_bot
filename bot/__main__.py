@@ -43,6 +43,9 @@ async def start_bot():
         logger.info("Бот запущен")
         load_dotenv()
 
+        import subprocess
+        subprocess.run(["alembic", "upgrade", "head"])
+
         if os.getenv("PROXY"):
             session = AiohttpSession(proxy=os.getenv("PROXY"))
             bot = Bot(os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html"))
