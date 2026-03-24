@@ -5,6 +5,21 @@ from utils.api_client import ApiClient
 from utils.logger import Logger
 from utils.schedule_cache import ScheduleCache
 from helpers.formatters import get_schedule_message
+from keyboards.inline import create_cancell_inline_keyboard
+from repositories.user_repository import UserRepository
+
+classes = ["1А", "1Б", "1В", "1Г",
+           "2А", "2Б", "2В", "2Г",
+           "3А", "3Б", "3В", "3Г", "3Д",
+           "4А", "4Б", "4В", "4Г",
+           "5А", "5Б", "5В", "5Г", "5Д",
+           "6А", "6Б", "6В", "6Г",
+           "7А", "7Б", "7В", "7Г", "7Д",
+           "8А", "8Б", "8В", "8Г", "8Д", "8 ТЕХ", "8ГУМ", "8Ф/М", "8Х/Б",
+           "9А", "9Б", "9В", "9Г", "9Д",
+           "10А", "10Б",
+           "11А", "11Б",
+           ]
 
 command_router = Router()
 logger = Logger(__name__).get_logger()
@@ -17,8 +32,15 @@ async def start(message: types.Message):
 @command_router.message(Command("schedule"))
 async def schedule(message: types.Message):
     if len(message.text.split()) == 1:
-        grade = message.text.split()[1]
-        logger.info(f"Пользователь @{message.from_user.username} вызвал команду /schedule для класса {grade} (указал в команде)")
+        user = await UserRepository.get_user_by_telegram_id(message.from_user.id)
+
+        if not user:
+            await message.answer("🚫 <b>Ошибка:</b> не выбран класс по умолчанию. Используйте /set_my_class для настройки класса по умолчанию или укажите класс в команде: /schedule {class}.")
+            return
+        
+        grade = user.grade
+
+        logger.info(f"Пользователь @{message.from_user.username} вызвал команду /schedule для класса {grade} (выбран класс по умолчанию)")
 
         cache = ScheduleCache()
         if cache.get(grade) is None:
@@ -32,7 +54,7 @@ async def schedule(message: types.Message):
         await message.answer(get_schedule_message(rasp))
 
     elif len(message.text.split()) == 2:
-        grade = message.text.split()[1]
+        grade = message.text.lower().split()[1]
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /schedule для класса {grade} (указал в команде)")
 
         cache = ScheduleCache()
@@ -48,3 +70,9 @@ async def schedule(message: types.Message):
 
     else:
         await message.answer("🚫 <b>Ошибка:</b> неверный формат команды. Используйте /schedule без аргументов для выбора класса по умолчанию (настраивается в /set_my_class) или /schedule {class} для выбора конкретного класса.")
+
+@command_router.message(Command("set_my_class"))
+async def set_my_class(message: types.Message):
+    logger.info(f"Пользователь @{message.from_user.username} вызвал команду /set_my_class")
+    buttons = {grade: "set_my_class:"+grade.lower() for grade in classes}
+    await message.answer("📃 Выберите ваш класс из списка:", reply_markup=create_cancell_inline_keyboard(buttons))

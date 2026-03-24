@@ -46,3 +46,5 @@ def get_schedule_message(schedule: dict) -> str:
                 text += f'{number}. {emoji_prefix} <b>{name}</b> — {time.replace(" ", "")} | каб. {cab}\n'
 
         text += "\n"
+
+    return text
