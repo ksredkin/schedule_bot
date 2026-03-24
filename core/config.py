@@ -1,1 +1,3 @@
 BOT_PHOTO_PATH = "./img/bot.png"
+LOGS_PATH = "./logs/"
+MINUTES_TO_RESET_SCHEDULE_CACHE = 60

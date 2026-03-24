@@ -6,62 +6,61 @@ import os
 from aiogram.client.session.aiohttp import AiohttpSession
 from handlers.command import command_router
 from core.config import BOT_PHOTO_PATH
+from utils.logger import Logger
+from messages.common import before_start_description, profile_description
+from utils.schedule_cache import ScheduleCache
 
-profile_description = '''📚 Расписание ВМЛ прямо в Telegram
+logger = Logger(__name__).get_logger()
 
-Показывает уроки, кабинеты и время до звонка
-
-⚠️ Неофициальный бот
-👨‍💻 Автор: @ksredkin'''
-
-before_start_description = '''Привет! Это бот для удобного просмотра расписания ВМЛ 📚
-
-Ты сможешь:
-• посмотреть расписание на сегодня или неделю
-• узнать кабинет текущего урока
-• узнать, сколько осталось до звонка
-• получать уведомления о заменах
-
-⚠️ Это неофициальный бот
-
-Нажми /start, чтобы начать'''
-
-async def set_up_bot(bot: Bot):
+async def setup_bot(bot: Bot):
+    logger.info("Начата настройка бота")
+    
     try:
         await bot.set_my_name("Расписание")
     except Exception as e:
-        pass
+        logger.warning(f"Не удалось настроить имя бота: {e}")
 
     try:
         await bot.set_my_description(before_start_description)
     except Exception as e:
-        pass
+        logger.warning(f"Не удалось настроить описание до start бота: {e}")
 
     try:
         await bot.set_my_short_description(profile_description)
     except Exception as e:
-        pass
+        logger.warning(f"Не удалось настроить описание бота: {e}")
 
     try:
         photo = types.InputProfilePhotoStatic(photo=types.FSInputFile(BOT_PHOTO_PATH))
         await bot.set_my_profile_photo(photo=photo)
     except Exception as e:
-        pass
+        logger.warning(f"Не удалось настроить фото бота: {e}")
+
+    logger.info("Настройка бота завершена")
 
 async def start_bot():
-    load_dotenv()
+    try:
+        logger.info("Бот запущен")
+        load_dotenv()
 
-    if os.getenv("PROXY"):
-        session = AiohttpSession(proxy=os.getenv("PROXY"))
-        bot = Bot(os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html"))
-    else:
-        bot = Bot(os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode="html"))
+        if os.getenv("PROXY"):
+            session = AiohttpSession(proxy=os.getenv("PROXY"))
+            bot = Bot(os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html"))
+        else:
+            bot = Bot(os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode="html"))
 
-    await set_up_bot(bot)
+        await setup_bot(bot)
 
-    dp = Dispatcher()
-    dp.include_router(command_router)
-    await dp.start_polling(bot)
+        cache = ScheduleCache()
+
+        dp = Dispatcher()
+        dp.include_router(command_router)
+
+        logger.info("Начата работа бота")
+        await dp.start_polling(bot)
+
+    except Exception as e:
+        logger.critical(f"Работа бота остановлена: {e}")
 
 if __name__ == "__main__":
     asyncio.run(start_bot())
