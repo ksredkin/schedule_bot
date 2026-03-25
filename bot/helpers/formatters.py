@@ -76,3 +76,31 @@ def get_schedule_today_message(schedule: dict, day_of_week: str) -> str:
         text += "\n"
 
     return text
+
+def get_schedule_tomorrow_message(schedule: dict, day_of_week: str) -> str:
+    text = f'<b>🗓️ Расписание на завтра ({day_of_week}):</b>\n\n'
+
+    for number, lesson in schedule.items():
+        name = lesson.get("name")
+        time = lesson.get("time")
+        group = lesson.get("group")
+        cab = lesson.get("cab")
+
+        emoji_prefix = emoji_prefixes.get(name.lower().split()[0], "")
+
+        if "groups" in lesson:
+            text += f'{number}. {emoji_prefix} <b>{name}</b> — {time.replace(" ", "")}\n'
+
+            if group:
+                text += f'   ├ группа {group} → каб. {cab}\n'
+
+            for i, g in enumerate(lesson["groups"]):
+                prefix = "└" if len(lesson["groups"])-1-i == 0 else "├"
+                text += f'   {prefix} группа {g["group"]} → каб. {g["cab"]}\n'
+
+        else:
+            text += f'{number}. {emoji_prefix} <b>{name}</b> — {time.replace(" ", "")} | каб. {cab}\n'
+
+        text += "\n"
+
+    return text

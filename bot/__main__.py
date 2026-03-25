@@ -14,9 +14,10 @@ from aiogram.types import BotCommand
 
 logger = Logger(__name__).get_logger()
 
-bot_commands = [BotCommand(command="schedule", description="📆 Просмотреть расписание класса, выбранного по умолчанию"),
+bot_commands = [BotCommand(command="schedule", description="📆 Расписание на неделю для класса, выбранного по умолчанию"),
+                BotCommand(command="schedule_today", description="📆 Расписание на сегодня для класса, выбранного по умолчанию"),
+                BotCommand(command="schedule_tomorrow", description="📆 Расписание на завтра для класса, выбранного по умолчанию"),
                 BotCommand(command="set_my_class", description="⚙️ Установить класс по умолчанию"),
-                BotCommand(command="schedule_today", description="📆 Расписание класса на сегодня, выбранного по умолчанию"),
                 ]
 
 async def setup_bot(bot: Bot):
@@ -24,27 +25,32 @@ async def setup_bot(bot: Bot):
     
     try:
         await bot.set_my_name("Расписание")
+        logger.info("Имя бота обновлено")
     except Exception as e:
         logger.warning(f"Не удалось настроить имя бота: {e}")
 
     try:
         await bot.set_my_description(before_start_description)
+        logger.info("Описание бота до start обновлено")
     except Exception as e:
         logger.warning(f"Не удалось настроить описание до start бота: {e}")
 
     try:
         await bot.set_my_short_description(profile_description)
+        logger.info("Описание бота обновлено")
     except Exception as e:
         logger.warning(f"Не удалось настроить описание бота: {e}")
 
     try:
         await bot.set_my_commands(bot_commands)
+        logger.info("Команды бота обновлены")
     except Exception as e:
         logger.warning(f"Не удалось настроить команды бота: {e}")
 
     try:
         photo = types.InputProfilePhotoStatic(photo=types.FSInputFile(BOT_PHOTO_PATH))
         await bot.set_my_profile_photo(photo=photo)
+        logger.info("Фото бота обновлено")
     except Exception as e:
         logger.warning(f"Не удалось настроить фото бота: {e}")
 
