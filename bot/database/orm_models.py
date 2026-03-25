@@ -7,4 +7,4 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     telegram_id = Column(BigInteger, unique=True)
-    grade = Column(String, nullable=False)
+    grade = Column(String, nullable=True)
