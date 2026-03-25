@@ -14,6 +14,7 @@ from utils.changes_cache import ChangesCache
 from aiogram.types import BotCommand
 from services.update_changes_cache_service import start_update_changes_cache_service
 import subprocess
+from utils.image_cache import ImageCache
 
 logger = Logger(__name__).get_logger()
 
@@ -72,6 +73,7 @@ async def start_bot(bot: Bot):
 
         schedule_cache = ScheduleCache()
         changes_cache = ChangesCache()
+        image_cache = ImageCache()
 
         dp = Dispatcher()
         dp.include_router(command_router)

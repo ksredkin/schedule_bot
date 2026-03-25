@@ -10,6 +10,7 @@ from repositories.user_repository import UserRepository
 from datetime import datetime
 from utils.helpers import get_current_lesson, get_time_to_bell
 from utils.changes_cache import ChangesCache
+from utils.image_cache import ImageCache
 
 classes = ["1А", "1Б", "1В", "1Г",
            "2А", "2Б", "2В", "2Г",
@@ -34,6 +35,7 @@ days_map = {
 
 command_router = Router()
 logger = Logger(__name__).get_logger()
+image_cache = ImageCache()
 
 @command_router.message(CommandStart())
 async def start(message: types.Message):
@@ -47,7 +49,12 @@ async def start(message: types.Message):
             grade=None
         )
 
-    await message.answer(start_message)
+    if image_cache.get("start") == None:
+        image = types.FSInputFile("./img/bot.png")
+        message = await message.answer_photo(image, caption=start_message)
+        image_cache.set("start", message.photo[-1].file_id)
+    else:
+        await message.answer_photo(image_cache.get("start"), caption=start_message)
 
 @command_router.message(Command("schedule"))
 async def schedule(message: types.Message):
