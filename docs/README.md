@@ -49,6 +49,10 @@
 /schedule_today {class}
 /schedule_tomorrow
 /schedule_tomorrow {class}
+/bell
+/bell {class}
+/changes
+/changes {class}
 /set_my_class
 ```
 
@@ -62,6 +66,8 @@
 * `/schedule_today {class}` — 📅 Расписание на завтра конкретного класса (например: `7д`)
 * `/bell` — 🔔 Время до звонка для класса, выбранного по умолчанию
 * `/bell {class}` — 🔔 Время до звонка для определенного класса
+* `/changes` — 🔄 Замены для класса, выбранного по умолчанию
+* `/changes {class}` — 🔄 Замены для определенного класса
 * `/set_my_class` — ⚙️ Выбрать класс по умолчанию
 
 ---

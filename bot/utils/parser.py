@@ -60,3 +60,11 @@ def parse_schedule(html: str) -> dict:
             })
 
     return result
+
+def parse_changes_url(html: str) -> dict:
+    soup = BeautifulSoup(html, "lxml")
+
+    li = soup.find("li", class_="menu-item menu-item-type-custom menu-item-object-custom menu-item-5101")
+    url = li.find("a")["href"]
+    
+    return url

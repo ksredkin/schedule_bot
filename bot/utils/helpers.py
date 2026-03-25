@@ -1,6 +1,8 @@
 from datetime import datetime, timezone, timedelta
 from utils.logger import Logger
 import pytz
+import csv
+from io import StringIO
 
 logger = Logger(__name__).get_logger()
 
@@ -63,3 +65,12 @@ def get_time_to_bell(schedule: dict):
                 return next_start_dt - now, next_lesson
 
     return None, None
+
+def get_changes(csv_text: str) -> list|None:
+    try:
+        reader = csv.reader(StringIO(csv_text))
+        rows = list(reader)
+        return rows
+    except Exception as e:
+        logger.critical(f"Не удалось спарсить csv файл замен: {e}")
+        return None

@@ -15,3 +15,21 @@ class ApiClient:
             html = response.text
         
         return parse_schedule(html)
+    
+    @staticmethod
+    async def get_main_page():
+        url = "https://vplicei.org"
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            html = response.text
+        
+        return html
+    
+    @staticmethod
+    async def get_file(url: str):
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, follow_redirects=True)
+            html = response.text
+        
+        return html

@@ -10,7 +10,9 @@ from core.config import BOT_PHOTO_PATH
 from utils.logger import Logger
 from messages.common import before_start_description, profile_description
 from utils.schedule_cache import ScheduleCache
+from utils.changes_cache import ChangesCache
 from aiogram.types import BotCommand
+from services.update_changes_cache_service import start_update_changes_cache_service
 
 logger = Logger(__name__).get_logger()
 
@@ -18,6 +20,7 @@ bot_commands = [BotCommand(command="schedule", description="📆 Расписа�
                 BotCommand(command="schedule_today", description="📅 Расписание на сегодня"),
                 BotCommand(command="schedule_tomorrow", description="📅 Расписание на завтра"),
                 BotCommand(command="bell", description="🔔 Время до звонка"),
+                BotCommand(command="changes", description="🔄 Замены"),
                 BotCommand(command="set_my_class", description="⚙️ Выбрать класс по умолчанию"),
                 ]
 
@@ -73,7 +76,8 @@ async def start_bot():
 
         await setup_bot(bot)
 
-        cache = ScheduleCache()
+        schedule_cache = ScheduleCache()
+        changes_cache = ChangesCache()
 
         dp = Dispatcher()
         dp.include_router(command_router)
@@ -85,5 +89,11 @@ async def start_bot():
     except Exception as e:
         logger.critical(f"Работа бота остановлена: {e}")
 
+async def main():
+    bot = asyncio.create_task(start_bot())
+    update_changes_cache_service = asyncio.create_task(start_update_changes_cache_service())
+    await bot
+    await update_changes_cache_service
+
 if __name__ == "__main__":
-    asyncio.run(start_bot())
+    asyncio.run(main())
