@@ -67,6 +67,10 @@ async def schedule(message: types.Message):
         
         grade = user.grade
 
+        if grade is None:
+            await message.answer("🚫 <b>Ошибка:</b> не выбран класс по умолчанию. Используйте /set_my_class для настройки класса по умолчанию или укажите класс в команде: /schedule {class}.")
+            return
+
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /schedule для класса {grade} (выбран класс по умолчанию)")
 
         cache = ScheduleCache()
@@ -120,6 +124,10 @@ async def schedule_today(message: types.Message):
         
         grade = user.grade
 
+        if grade is None:
+            await message.answer("🚫 <b>Ошибка:</b> не выбран класс по умолчанию. Используйте /set_my_class для настройки класса по умолчанию или укажите класс в команде: /schedule {class}.")
+            return
+
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /schedule_today для класса {grade} (выбран класс по умолчанию)")
 
     elif len(message.text.split()) < 4:
@@ -163,6 +171,10 @@ async def schedule_tomorrow(message: types.Message):
         
         grade = user.grade
 
+        if grade is None:
+            await message.answer("🚫 <b>Ошибка:</b> не выбран класс по умолчанию. Используйте /set_my_class для настройки класса по умолчанию или укажите класс в команде: /schedule {class}.")
+            return
+
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /schedule_tomorrow для класса {grade} (выбран класс по умолчанию)")
 
     elif len(message.text.split()) < 4:
@@ -205,6 +217,10 @@ async def lesson(message: types.Message):
             return
         
         grade = user.grade
+
+        if grade is None:
+            await message.answer("🚫 <b>Ошибка:</b> не выбран класс по умолчанию. Используйте /set_my_class для настройки класса по умолчанию или укажите класс в команде: /schedule {class}.")
+            return
 
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /lesson для класса {grade} (выбран класс по умолчанию)")
 
@@ -260,6 +276,10 @@ async def bell(message: types.Message):
         
         grade = user.grade
 
+        if grade is None:
+            await message.answer("🚫 <b>Ошибка:</b> не выбран класс по умолчанию. Используйте /set_my_class для настройки класса по умолчанию или укажите класс в команде: /schedule {class}.")
+            return
+
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /schedule_tomorrow для класса {grade} (выбран класс по умолчанию)")
 
     elif len(message.text.split()) < 4:
@@ -306,6 +326,10 @@ async def changes(message: types.Message):
             return
         
         grade = user.grade
+
+        if grade is None:
+            await message.answer("🚫 <b>Ошибка:</b> не выбран класс по умолчанию. Используйте /set_my_class для настройки класса по умолчанию или укажите класс в команде: /schedule {class}.")
+            return
 
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /changes для класса {grade} (выбран класс по умолчанию)")
 

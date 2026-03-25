@@ -51,6 +51,8 @@ class UserRepository:
 
                 if not user:
                     return None
+                
+                user.grade = grade
 
                 await conn.commit()
                 await conn.refresh(user)
