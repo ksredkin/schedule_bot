@@ -15,8 +15,9 @@ from aiogram.types import BotCommand
 logger = Logger(__name__).get_logger()
 
 bot_commands = [BotCommand(command="schedule", description="📆 Расписание на неделю для класса, выбранного по умолчанию"),
-                BotCommand(command="schedule_today", description="📆 Расписание на сегодня для класса, выбранного по умолчанию"),
-                BotCommand(command="schedule_tomorrow", description="📆 Расписание на завтра для класса, выбранного по умолчанию"),
+                BotCommand(command="schedule_today", description="📅 Расписание на сегодня для класса, выбранного по умолчанию"),
+                BotCommand(command="schedule_tomorrow", description="📅 Расписание на завтра для класса, выбранного по умолчанию"),
+                BotCommand(command="bell", description="🔔 Время до звонка для класса, выбранного по умолчанию"),
                 BotCommand(command="set_my_class", description="⚙️ Установить класс по умолчанию"),
                 ]
 
