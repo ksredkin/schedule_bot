@@ -18,3 +18,7 @@ async def process_class(callback: types.CallbackQuery):
         await UserRepository.update_user_grade(callback.from_user.id, grade)
     
     await callback.message.edit_text("✅ Ваш класс успешно обновлен!")
+
+@callback_router.callback_query(F.data == "cancell")
+async def cancell(callback: types.CallbackQuery):    
+    await callback.message.edit_text("✅ Обновление класса отменено!")

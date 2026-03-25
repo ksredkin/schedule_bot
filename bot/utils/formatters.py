@@ -1,5 +1,4 @@
-from utils.helpers import get_current_lesson
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 
 emoji_prefixes = {"физическая": "🏀",
                   "алгебра": "🧮",
@@ -26,6 +25,10 @@ def get_schedule_message(schedule: dict) -> str:
 
     for day, lessons in schedule.items():
         text += f'<b>📅 {day}</b>\n'
+
+        if not lessons:
+            text += f'\nУроков нет\n\n'
+            continue
 
         for number, lesson in lessons.items():
             name = lesson.get("name")
@@ -55,6 +58,10 @@ def get_schedule_message(schedule: dict) -> str:
 def get_schedule_today_message(schedule: dict, day_of_week: str) -> str:
     text = f'<b>🗓️ Расписание на сегодня ({day_of_week}):</b>\n\n'
 
+    if not schedule:
+        text += f'Уроков нет'
+        return text
+
     for number, lesson in schedule.items():
         name = lesson.get("name")
         time = lesson.get("time")
@@ -82,6 +89,10 @@ def get_schedule_today_message(schedule: dict, day_of_week: str) -> str:
 
 def get_schedule_tomorrow_message(schedule: dict, day_of_week: str) -> str:
     text = f'<b>🗓️ Расписание на завтра ({day_of_week}):</b>\n\n'
+
+    if not schedule:
+        text += f'Уроков нет'
+        return text
 
     for number, lesson in schedule.items():
         name = lesson.get("name")
@@ -196,41 +207,7 @@ def get_bell_message(time_to_bell: timedelta) -> str:
     except:
         seconds = time_to_bell.total_seconds()%60
 
-
     return f"""🔔 Время до звонка: {minutes} минут {seconds} секунд"""
-
-# Текущие замены
-"""
-[
-    ['1,2', '10б', ' Общ.', 'нет', ' ', ' '], 
-    ['3', '5б', ' Истор.', ' Староверова Т.В.', ' ИЗО вм. 1 урока', '211'], 
-    ['5', '11б', ' Истор.', 'Хуснутдинов М.Р.', ' Истор.замена', '212'], 
-    ['6', '11б', ' Истор.', 'Хуснутдинов М.Р.', ' Истор.замена', '212'], 
-    ['1', '5д', ' Литер.', 'нет', ' ', ' '], 
-    ['2', '5д', ' Рус.яз.', 'нет', ' ', ' '], 
-    ['3', '5в', ' Рус.яз.', ' ЗиннатуллинИ.А.Решетникова Н.А.', 'Труд', '117 121'], 
-    ['4', '5в', ' Рус.яз.', ' ЗиннатуллинИ.А.Решетникова Н.А.', 'Труд', '118 121'], 
-    ['5', '7а', ' Рус.яз.', ' Бабушкина Е.А.', ' Рус.яз.замена', '134'], 
-    ['6', '7а', ' Литер.', ' Бабушкина Е.А.', ' Литер.замена', '134'], 
-    ['1', '5а', ' Физк.', ' ЗиннатуллинИ.А.Решетникова Н.А.', 'Труд', '117 121'], 
-    ['2', '5а', ' Матем.', ' ЗиннатуллинИ.А.Решетникова Н.А.', 'Труд', '118 121'], 
-    ['3', '5а', 'Труд', ' Антошина А.С.', ' Физк.', ' '], 
-    ['4', '5а', 'Труд', ' Устюжанина С.Л.', ' Матем.', '224'], 
-    ['1', '5б', 'ИЗО', ' на 3 урок', ' ', ' '], 
-    ['3', '5б', 'Истор.', ' Староверова Т.В.', ' ИЗО', '211'], 
-    ['1', '5в', 'Труд', '  на 3 урок', ' ', ' '], 
-    ['2', '5в', 'Труд', '   на 4 урок', ' ', ' '], 
-    ['3', '5в', ' Рус.яз.', ' ЗиннатуллинИ.А.Решетникова Н.А.', 'Труд', '117 121'], 
-    ['4', '5в', 'Литер.', ' ЗиннатуллинИ.А.Решетникова Н.А.', 'Труд', '118 121'], 
-    ['2', '5г', 'Литер.', ' Устюжанина С.Л.', ' Матем.', '224'], 
-    ['4', '5г', ' Матем.', ' Бабушкина Е.А.', ' Литер.', '134'], 
-    ['1', '5д', 'Литер.', 'нет', ' ', ' '], 
-    ['2', '5д', ' Рус.яз.', 'нет', ' ', ' '], 
-    ['2', '11а', 'Геом.', 'Бабушкина Е.А.', ' Литер.', '134'], 
-    ['4', '11а', 'Литер.', 'Вакилова В.В.', ' Геом.', '226'], 
-    ['4 ур.', '11б', 'Ин.яз.', 'Перминова М.В.', 'Ин.яз.', '136']
-]
-"""
 
 def get_changes_message(rows: list, _grade: str) -> str:
     text = "<b>🔄 Замены уроков:</b>\n\n"

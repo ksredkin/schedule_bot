@@ -38,6 +38,15 @@ logger = Logger(__name__).get_logger()
 @command_router.message(CommandStart())
 async def start(message: types.Message):
     logger.info(f"Пользователь @{message.from_user.username} вызвал команду /start")
+
+    user = await UserRepository.get_user_by_telegram_id(message.from_user.id)
+
+    if not user:
+        await UserRepository.create_user(
+            telegram_id=message.from_user.id,
+            grade=None
+        )
+
     await message.answer(start_message)
 
 @command_router.message(Command("schedule"))
@@ -64,9 +73,13 @@ async def schedule(message: types.Message):
 
         await message.answer(get_schedule_message(rasp))
 
-    elif len(message.text.split()) == 2:
-        grade = message.text.lower().split()[1]
+    elif len(message.text.split()) < 4:
+        grade = " ".join(message.text.lower().split()[1:])
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /schedule для класса {grade} (указал в команде)")
+
+        if grade.upper() not in classes:
+            await message.answer("🚫 <b>Ошибка:</b> такого класса нет в школе.")
+            return
 
         cache = ScheduleCache()
         if cache.get(grade) is None:
@@ -102,9 +115,13 @@ async def schedule_today(message: types.Message):
 
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /schedule_today для класса {grade} (выбран класс по умолчанию)")
 
-    elif len(message.text.split()) == 2:
-        grade = message.text.lower().split()[1]
+    elif len(message.text.split()) < 4:
+        grade = " ".join(message.text.lower().split()[1:])
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /schedule_today для класса {grade} (указал в команде)")
+
+        if grade.upper() not in classes:
+            await message.answer("🚫 <b>Ошибка:</b> такого класса нет в школе.")
+            return
 
     else:
         await message.answer("🚫 <b>Ошибка:</b> неверный формат команды. Используйте /schedule_today без аргументов для выбора класса по умолчанию (настраивается в /set_my_class) или /schedule_today {class} для выбора конкретного класса.")
@@ -141,9 +158,13 @@ async def schedule_tomorrow(message: types.Message):
 
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /schedule_tomorrow для класса {grade} (выбран класс по умолчанию)")
 
-    elif len(message.text.split()) == 2:
-        grade = message.text.lower().split()[1]
+    elif len(message.text.split()) < 4:
+        grade = " ".join(message.text.lower().split()[1:])
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /schedule_tomorrow для класса {grade} (указал в команде)")
+
+        if grade.upper() not in classes:
+            await message.answer("🚫 <b>Ошибка:</b> такого класса нет в школе.")
+            return
 
     else:
         await message.answer("🚫 <b>Ошибка:</b> неверный формат команды. Используйте /schedule_tomorrow без аргументов для выбора класса по умолчанию (настраивается в /set_my_class) или /schedule_tomorrow {class} для выбора конкретного класса.")
@@ -180,9 +201,13 @@ async def lesson(message: types.Message):
 
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /lesson для класса {grade} (выбран класс по умолчанию)")
 
-    elif len(message.text.split()) == 2:
-        grade = message.text.lower().split()[1]
+    elif len(message.text.split()) < 4:
+        grade = " ".join(message.text.lower().split()[1:])
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /lesson для класса {grade} (указал в команде)")
+
+        if grade.upper() not in classes:
+            await message.answer("🚫 <b>Ошибка:</b> такого класса нет в школе.")
+            return
 
     else:
         await message.answer("🚫 <b>Ошибка:</b> неверный формат команды. Используйте /lesson без аргументов для выбора класса по умолчанию (настраивается в /set_my_class) или /lesson {class} для выбора конкретного класса.")
@@ -200,6 +225,11 @@ async def lesson(message: types.Message):
 
     if not number or not lesson:
         next_time_to_bell, next_lesson = get_time_to_bell(rasp)
+
+        if not next_lesson:
+            await message.answer("🏝️ Сейчас нет уроков.")
+            return
+
         await message.answer("🏝️ Сейчас нет урока.\n\n" + get_next_lesson_message(next_time_to_bell, next_lesson))
         return
 
@@ -225,9 +255,13 @@ async def bell(message: types.Message):
 
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /schedule_tomorrow для класса {grade} (выбран класс по умолчанию)")
 
-    elif len(message.text.split()) == 2:
-        grade = message.text.lower().split()[1]
+    elif len(message.text.split()) < 4:
+        grade = " ".join(message.text.lower().split()[1:])
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /schedule_tomorrow для класса {grade} (указал в команде)")
+
+        if grade.upper() not in classes:
+            await message.answer("🚫 <b>Ошибка:</b> такого класса нет в школе.")
+            return
 
     else:
         await message.answer("🚫 <b>Ошибка:</b> неверный формат команды. Используйте /schedule без аргументов для выбора класса по умолчанию (настраивается в /set_my_class) или /schedule {class} для выбора конкретного класса.")
@@ -268,9 +302,13 @@ async def changes(message: types.Message):
 
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /changes для класса {grade} (выбран класс по умолчанию)")
 
-    elif len(message.text.split()) == 2:
-        grade = message.text.lower().split()[1]
+    elif len(message.text.split()) < 4:
+        grade = " ".join(message.text.lower().split()[1:])
         logger.info(f"Пользователь @{message.from_user.username} вызвал команду /changes для класса {grade} (указал в команде)")
+
+        if grade.upper() not in classes:
+            await message.answer("🚫 <b>Ошибка:</b> такого класса нет в школе.")
+            return
 
     else:
         await message.answer("🚫 <b>Ошибка:</b> неверный формат команды. Используйте /changes без аргументов для выбора класса по умолчанию (настраивается в /set_my_class) или /changes {class} для выбора конкретного класса.")

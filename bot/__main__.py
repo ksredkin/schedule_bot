@@ -13,10 +13,12 @@ from utils.schedule_cache import ScheduleCache
 from utils.changes_cache import ChangesCache
 from aiogram.types import BotCommand
 from services.update_changes_cache_service import start_update_changes_cache_service
+import subprocess
 
 logger = Logger(__name__).get_logger()
 
-bot_commands = [BotCommand(command="schedule", description="📆 Расписание на неделю"),
+bot_commands = [BotCommand(command="start", description="👋 Приветственное сообщение"),
+                BotCommand(command="schedule", description="📆 Расписание на неделю"),
                 BotCommand(command="schedule_today", description="📅 Расписание на сегодня"),
                 BotCommand(command="schedule_tomorrow", description="📅 Расписание на завтра"),
                 BotCommand(command="bell", description="🔔 Время до звонка"),
@@ -60,20 +62,12 @@ async def setup_bot(bot: Bot):
 
     logger.info("Настройка бота завершена")
 
-async def start_bot():
+async def start_bot(bot: Bot):
     try:
         logger.info("Бот запущен")
         load_dotenv()
 
-        import subprocess
         subprocess.run(["alembic", "upgrade", "head"])
-
-        if os.getenv("PROXY"):
-            session = AiohttpSession(proxy=os.getenv("PROXY"))
-            bot = Bot(os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html"))
-        else:
-            bot = Bot(os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode="html"))
-
         await setup_bot(bot)
 
         schedule_cache = ScheduleCache()
@@ -90,9 +84,15 @@ async def start_bot():
         logger.critical(f"Работа бота остановлена: {e}")
 
 async def main():
-    bot = asyncio.create_task(start_bot())
-    update_changes_cache_service = asyncio.create_task(start_update_changes_cache_service())
-    await bot
+    if os.getenv("PROXY"):
+        session = AiohttpSession(proxy=os.getenv("PROXY"))
+        bot = Bot(os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html"))
+    else:
+        bot = Bot(os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode="html"))
+
+    bot_service = asyncio.create_task(start_bot(bot))
+    update_changes_cache_service = asyncio.create_task(start_update_changes_cache_service(bot))
+    await bot_service
     await update_changes_cache_service
 
 if __name__ == "__main__":
