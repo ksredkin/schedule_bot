@@ -12,8 +12,6 @@ from utils.formatters import get_changes_message
 logger = Logger(__name__).get_logger()
 
 async def get_changes_table_rows():
-    await asyncio.sleep(MINUTES_TO_CHECK_CHANGES*60)
-
     main_page = await ApiClient.get_main_page()
     changes_url = parse_changes_url(main_page)
 
@@ -24,6 +22,8 @@ async def get_changes_table_rows():
     csv_text = await ApiClient.get_file(download_url)
     table_rows = get_changes(csv_text)
 
+    return table_rows
+
 async def start_update_changes_cache_service(bot: Bot):
     changes_cache = ChangesCache()
     table_rows = await get_changes_table_rows()
@@ -31,11 +31,12 @@ async def start_update_changes_cache_service(bot: Bot):
     while True:
         await asyncio.sleep(MINUTES_TO_CHECK_CHANGES*60)
         table_rows = await get_changes_table_rows()
+        old_schedule = changes_cache.get()
 
-        if table_rows != changes_cache.get():
+        if table_rows != old_schedule:
             changes_cache.set(table_rows)
 
-            users = await UserRepository.get_all_users()
+            users = await UserRepository.get_users()
 
             for user in users:
                 grade = user.grade
@@ -46,8 +47,11 @@ async def start_update_changes_cache_service(bot: Bot):
                 if grade not in table_rows:
                     continue
 
+                if old_schedule.get(grade) == table_rows.get(grade):
+                    continue
+
                 text = "🔄 <b>Обновились замены!</b>\n\n"
-                taxt += get_changes_message(table_rows, grade)
+                text += get_changes_message(table_rows, grade)
 
                 try:
                     await bot.send_message(user.telegram_id, text)
