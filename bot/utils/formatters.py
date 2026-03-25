@@ -116,8 +116,8 @@ def get_lesson_message(number: int, lesson: dict) -> str:
 
     emoji_prefix = emoji_prefixes.get(name.lower().split()[0], "")
 
-    if group in lesson:
-        text = f"""<b>⏰ Текущий урок: {emoji_prefix} {name}:</b>
+    if group:
+        text = f"""<b>⏰ Текущий урок: {emoji_prefix} {name}</b>
 <b>🕜 Время:</b> {time}
 <b>🔢 Урок по счету:</b> {number}
 
@@ -134,10 +134,52 @@ def get_lesson_message(number: int, lesson: dict) -> str:
             text += f'   {prefix} группа {g["group"]} → каб. {g["cab"]}\n'
     
     else:
-        text = f"""<b>⏰ Текущий урок: {emoji_prefix} {name}:</b>
+        text = f"""<b>⏰ Текущий урок: {emoji_prefix} {name}</b>
 
 <b>🕜 Время:</b> {time}
 <b>🔢 Урок по счету:</b> {number}
+<b>🚪 Кабиент:</b> {cab}
+"""
+
+    return text
+
+def get_next_lesson_message(next_time_to_bell: timedelta, next_lesson: dict) -> str:
+    name = next_lesson.get("name")
+    time = next_lesson.get("time")
+    group = next_lesson.get("group")
+    cab = next_lesson.get("cab")
+
+    emoji_prefix = emoji_prefixes.get(name.lower().split()[0], "")
+
+    try:
+        minutes = int(next_time_to_bell.total_seconds()//60)
+    except:
+        minutes = next_time_to_bell.total_seconds()//60
+
+    try:
+        seconds = int(next_time_to_bell.total_seconds()%60)
+    except:
+        seconds = next_time_to_bell.total_seconds()%60
+
+    if group:
+        text = f"""<b>⏰ Следующий урок: {emoji_prefix} {name}</b>
+<b>⏳ До звонка:</b> {minutes} минут {seconds} секунд
+<b>🕜 Время:</b> {time}
+
+<b>Группы:</b>
+"""
+
+        text += f'   ├ группа 1 → каб. {cab}\n'
+
+        for i, g in enumerate(next_lesson["groups"]):
+            prefix = "└" if len(next_lesson["groups"])-1-i == 0 else "├"
+            text += f'   {prefix} группа {g["group"]} → каб. {g["cab"]}\n'
+    
+    else:
+        text = f"""<b>⏰ Следующий урок: {emoji_prefix} {name}</b>
+
+<b>⏳ До звонка:</b> {minutes} минут {seconds} секунд
+<b>🕜 Время:</b> {time}
 <b>🚪 Кабиент:</b> {cab}
 """
 

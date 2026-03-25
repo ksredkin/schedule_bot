@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from utils.logger import Logger
 import pytz
 
@@ -60,6 +60,6 @@ def get_time_to_bell(schedule: dict):
             next_start_dt = now.replace(hour=next_start.hour, minute=next_start.minute, second=0)
 
             if end_dt <= now <= next_start_dt:
-                return next_start_dt - now, None
+                return next_start_dt - now, next_lesson
 
     return None, None
