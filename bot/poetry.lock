@@ -1441,6 +1441,17 @@ files = [
 ]
 
 [[package]]
+name = "singbox2proxy"
+version = "0.2.7"
+description = "🐳 Use sing-box (v2ray) proxies (VLESS + REALITY, VMess, Trojan, Shadowsocks, Hysteria, Hysteria2, TUIC, WireGuard, SSH) directly in your http clients, with chaining support and easy CLI"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "singbox2proxy-0.2.7-py3-none-any.whl", hash = "sha256:eca3a45ed95de766566c7bc6082ffede039f217de434bff4d7826a6941d0c138"},
+    {file = "singbox2proxy-0.2.7.tar.gz", hash = "sha256:f31c9e8d5f8ab7050a79219787c957dd1127f6d69e5446a63af5d042d44a30cf"},
+]
+
+[[package]]
 name = "soupsieve"
 version = "2.8.3"
 description = "A modern CSS selector implementation for Beautiful Soup."
@@ -1722,4 +1733,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.13,<3.15"
-content-hash = "373b33f5ded581adb4d76ef246fca776dac8d6a8b41740abfb6e57cb61840ade"
+content-hash = "d173a304e3b99dd85e4274d587e9446e2901e812d831e814d978f25bb3186b9b"

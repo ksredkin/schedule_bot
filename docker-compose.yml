@@ -26,6 +26,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       TOKEN: ${TOKEN}
       PROXY: ${PROXY}
+      VLESS_PROXY: ${VLESS_PROXY}
     volumes:
       - ./bot:/app
     networks:

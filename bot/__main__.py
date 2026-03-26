@@ -17,6 +17,7 @@ import subprocess
 from utils.image_cache import ImageCache
 from aiohttp_socks._errors import ProxyTimeoutError
 import sys
+from singbox2proxy import SingBoxProxy
 
 logger = Logger(__name__).get_logger()
 
@@ -90,10 +91,21 @@ async def start_bot(bot: Bot):
 
 async def main():
     try:
-        if os.getenv("PROXY"):
+        if os.getenv("PROXY"):    
+            logger.info("Запуск с ипользованием proxy")
             session = AiohttpSession(proxy=os.getenv("PROXY"))
             bot = Bot(os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html"))
+        
+        elif os.getenv("VLESS_PROXY"):
+            logger.info("Запуск с ипользованием VLESS proxy")
+            proxy = SingBoxProxy(os.getenv("VLESS_PROXY"))
+            proxy.start()
+
+            session = AiohttpSession(proxy=proxy.socks5_proxy_url)
+            bot = Bot(os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html"))
+        
         else:
+            logger.info("Запуск без proxy")
             bot = Bot(os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode="html"))
 
         bot_service = asyncio.create_task(start_bot(bot))
