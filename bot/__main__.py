@@ -15,6 +15,8 @@ from aiogram.types import BotCommand
 from services.update_changes_cache_service import start_update_changes_cache_service
 import subprocess
 from utils.image_cache import ImageCache
+from aiohttp_socks._errors import ProxyTimeoutError
+import sys
 
 logger = Logger(__name__).get_logger()
 
@@ -84,18 +86,24 @@ async def start_bot(bot: Bot):
 
     except Exception as e:
         logger.critical(f"Работа бота остановлена: {e}")
+        sys.exit(1)
 
 async def main():
-    if os.getenv("PROXY"):
-        session = AiohttpSession(proxy=os.getenv("PROXY"))
-        bot = Bot(os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html"))
-    else:
-        bot = Bot(os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode="html"))
+    try:
+        if os.getenv("PROXY"):
+            session = AiohttpSession(proxy=os.getenv("PROXY"))
+            bot = Bot(os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html"))
+        else:
+            bot = Bot(os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode="html"))
 
-    bot_service = asyncio.create_task(start_bot(bot))
-    update_changes_cache_service = asyncio.create_task(start_update_changes_cache_service(bot))
-    await bot_service
-    await update_changes_cache_service
+        bot_service = asyncio.create_task(start_bot(bot))
+        update_changes_cache_service = asyncio.create_task(start_update_changes_cache_service(bot))
+        await bot_service
+        await update_changes_cache_service
+
+    except ProxyTimeoutError:
+        logger.critical("Не удалось подключиться к proxy.")
+        sys.exit(1)
 
 if __name__ == "__main__":
     asyncio.run(main())

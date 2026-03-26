@@ -24,7 +24,8 @@ start_message = '''Привет! 👋
 /set_my_class — ⚙️ Выбрать класс по умолчанию
 
 ⚠️ <b>Бот неофициальный</b>
-👨‍💻 <b>Автор:</b> @ksredkin'''
+👨‍💻 <b>Автор:</b> @ksredkin
+🐈‍⬛ <b>GitHub проекта:</b> github.com/ksredkin/schedule_bot'''
 
 profile_description = '''📚 Расписание ВМЛ прямо в Telegram
 
