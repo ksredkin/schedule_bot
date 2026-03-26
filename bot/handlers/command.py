@@ -11,6 +11,7 @@ from datetime import datetime
 from utils.helpers import get_current_lesson, get_time_to_bell
 from utils.changes_cache import ChangesCache
 from utils.image_cache import ImageCache
+from aiogram.exceptions import TelegramNetworkError
 
 classes = ["1А", "1Б", "1В", "1Г",
            "2А", "2Б", "2В", "2Г",
@@ -50,9 +51,13 @@ async def start(message: types.Message):
         )
 
     if image_cache.get("start") == None:
-        image = types.FSInputFile("./img/bot.png")
-        message = await message.answer_photo(image, caption=start_message)
-        image_cache.set("start", message.photo[-1].file_id)
+        try:
+            image = types.FSInputFile("./img/bot.png")
+            message = await message.answer_photo(image, caption=start_message)
+            image_cache.set("start", message.photo[-1].file_id)
+        except TelegramNetworkError:
+            logger.warning("Не удалось отправить ответ с фото на /start")
+            await message.answer(start_message)
     else:
         await message.answer_photo(image_cache.get("start"), caption=start_message)
 
