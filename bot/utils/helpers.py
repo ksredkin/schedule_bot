@@ -3,6 +3,11 @@ from utils.logger import Logger
 import pytz
 import csv
 from io import StringIO
+from aiogram import types
+from repositories.user_repository import UserRepository
+from utils.schedule_cache import ScheduleCache
+from utils.api_client import ApiClient
+from utils.parser import parse_schedule
 
 logger = Logger(__name__).get_logger()
 
@@ -13,6 +18,19 @@ days_map = {
     3: "Четверг",
     4: "Пятница",
 }
+
+classes = ["1А", "1Б", "1В", "1Г",
+           "2А", "2Б", "2В", "2Г",
+           "3А", "3Б", "3В", "3Г", "3Д",
+           "4А", "4Б", "4В", "4Г",
+           "5А", "5Б", "5В", "5Г", "5Д",
+           "6А", "6Б", "6В", "6Г",
+           "7А", "7Б", "7В", "7Г", "7Д",
+           "8А", "8Б", "8В", "8Г", "8Д", "8 ТЕХ", "8ГУМ", "8Ф/М", "8Х/Б",
+           "9А", "9Б", "9В", "9Г", "9Д",
+           "10А", "10Б",
+           "11А", "11Б",
+           ]
 
 def parse_time_range(time_str: str):
     start_str, end_str = time_str.split(" - ")
@@ -74,3 +92,53 @@ def get_changes(csv_text: str) -> list|None:
     except Exception as e:
         logger.critical(f"Не удалось спарсить csv файл замен: {e}")
         return None
+    
+async def resolve_grade(message: types.Message, command_name: str) -> str|None:
+    parts = message.text.split()
+
+    if len(parts) == 1:
+        user = await UserRepository.get_user_by_telegram_id(message.from_user.id)
+
+        if not user or not user.grade:
+            await message.answer(f"🚫 <b>Ошибка:</b> не выбран класс. Используйте /set_my_class или /{command_name}" + " {class}.")
+            return None
+
+        return user.grade
+
+    elif len(parts) < 4:
+        grade = " ".join(parts[1:]).upper()
+
+        if grade not in classes:
+            await message.answer("🚫 <b>Ошибка:</b> такого класса нет.")
+            return None
+
+        return grade
+
+    else:
+        await message.answer(f"🚫 <b>Ошибка:</b> неверный формат. Используйте /{command_name}" + " {class}.")
+        return None
+    
+async def get_schedule_by_grade(message: types.Message, grade: str) -> dict|None:
+    cache = ScheduleCache()
+    rasp = cache.get(grade)
+    
+    if rasp:
+        logger.info(f"Расписание для класса {grade} получено из кэша")
+        return rasp
+
+    rasp_html = await ApiClient.get_grade_schedule(grade)
+
+    if not rasp_html:
+        await message.answer("🚫 Сайт школы недоступен.")
+        return None
+
+    rasp = parse_schedule(rasp_html)
+
+    if not rasp:
+        await message.answer("🚫 Ошибка парсинга расписания.")
+        return None
+
+    cache.set(grade, rasp)
+    logger.info(f"Расписание для класса {grade} получено с сайта")
+
+    return rasp

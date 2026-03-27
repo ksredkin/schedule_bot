@@ -56,7 +56,7 @@ def get_schedule_message(schedule: dict) -> str:
     return text
 
 def get_schedule_today_message(schedule: dict, day_of_week: str) -> str:
-    text = f'<b>🗓️ Расписание на сегодня ({day_of_week}):</b>\n\n'
+    text = f'<b>🗓️ Расписание на сегодня ({day_of_week.lower()}):</b>\n\n'
 
     if not schedule:
         text += f'Уроков нет'
