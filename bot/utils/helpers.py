@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from utils.logger import Logger
 import pytz
 import csv
@@ -32,7 +32,7 @@ classes = ["1А", "1Б", "1В", "1Г",
            "11А", "11Б",
            ]
 
-def parse_time_range(time_str: str):
+def parse_time_range(time_str: str) -> tuple[datetime.time, datetime.time]|None:
     start_str, end_str = time_str.split(" - ")
 
     start = datetime.strptime(start_str, "%H:%M").time()
@@ -40,7 +40,7 @@ def parse_time_range(time_str: str):
 
     return start, end
 
-def get_current_lesson(schedule: dict):
+def get_current_lesson(schedule: dict) -> tuple[None, None]|tuple[int, dict]:
     now = datetime.now(pytz.timezone('Europe/Moscow')).time()
     today = days_map.get(datetime.now().weekday())
 
@@ -55,7 +55,7 @@ def get_current_lesson(schedule: dict):
 
     return None, None
 
-def get_time_to_bell(schedule: dict):
+def get_time_to_bell(schedule: dict) -> tuple[None, None]|tuple[timedelta, dict]:
     now = datetime.now(pytz.timezone('Europe/Moscow'))
     today = days_map.get(datetime.now().weekday())
 

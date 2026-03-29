@@ -11,18 +11,22 @@ from utils.formatters import get_changes_message
 
 logger = Logger(__name__).get_logger()
 
-async def get_changes_table_rows():
-    main_page = await ApiClient.get_main_page()
-    changes_url = parse_changes_url(main_page)
+async def get_changes_table_rows() -> dict|None:
+    try:
+        main_page = await ApiClient.get_main_page()
+        changes_url = parse_changes_url(main_page)
 
-    changes_url_without_https_and_edit = changes_url[8:].split("/")[:-1]
-    changes_url_without_https_and_edit.append("export?format=csv")
-    download_url = "https://" + "/".join(changes_url_without_https_and_edit)
+        changes_url_without_https_and_edit = changes_url[8:].split("/")[:-1]
+        changes_url_without_https_and_edit.append("export?format=csv")
+        download_url = "https://" + "/".join(changes_url_without_https_and_edit)
 
-    csv_text = await ApiClient.get_file(download_url)
-    table_rows = get_changes(csv_text)
+        csv_text = await ApiClient.get_file(download_url)
+        table_rows = get_changes(csv_text)
 
-    return table_rows
+        return table_rows
+    except Exception as e:
+        logger.critical(f"Не удалось получить строки таблицы изменений: {e}")
+        return None
 
 async def start_update_changes_cache_service(bot: Bot):
     changes_cache = ChangesCache()

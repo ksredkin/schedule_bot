@@ -7,7 +7,7 @@ logger = Logger(__name__).get_logger()
 
 class UserRepository:
     @staticmethod
-    async def get_users() -> User:
+    async def get_users() -> User|None:
         async with session() as conn:
             try:
                 result = await conn.execute(select(User))
@@ -15,6 +15,7 @@ class UserRepository:
                 return users
             except Exception as e:
                 logger.critical(f"Произошла ошибка при попытке получить всех пользователей из бд: {e}")
+                return None
 
     @staticmethod
     async def get_user_by_telegram_id(telegram_id: int) -> User|None:

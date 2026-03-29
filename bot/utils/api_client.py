@@ -34,7 +34,7 @@ class ApiClient:
             return None
 
     @staticmethod
-    async def get_file(url: str):
+    async def get_file(url: str) -> str|None:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(url, follow_redirects=True)
@@ -43,3 +43,4 @@ class ApiClient:
             return html
         except Exception as e:
             logger.warning(f"Не удалось получить файл по ссылке: {url} . Ошибка: {e}")
+            return None
