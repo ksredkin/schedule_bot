@@ -3,10 +3,11 @@ from utils.logger import Logger
 
 logger = Logger(__name__).get_logger()
 
-def parse_schedule(html: str) -> dict|None:
+
+def parse_schedule(html: str) -> dict | None:
     try:
         soup = BeautifulSoup(html, "lxml")
-        
+
         table = soup.find("table", class_="rasp")
         rows = table.find_all("tr")
 
@@ -39,7 +40,7 @@ def parse_schedule(html: str) -> dict|None:
                     "time": time,
                     "name": name,
                     "group": group or None,
-                    "cab": cab
+                    "cab": cab,
                 }
 
             else:
@@ -51,23 +52,24 @@ def parse_schedule(html: str) -> dict|None:
                 if "groups" not in lesson:
                     lesson["groups"] = []
 
-                lesson["groups"].append({
-                    "group": group,
-                    "cab": cab
-                })
+                lesson["groups"].append({"group": group, "cab": cab})
 
         return result
     except Exception as e:
         logger.critical(f"Не удалось спарсить расписание: {e}")
         return None
 
-def parse_changes_url(html: str) -> str|None:
+
+def parse_changes_url(html: str) -> str | None:
     try:
         soup = BeautifulSoup(html, "lxml")
 
-        li = soup.find("li", class_="menu-item menu-item-type-custom menu-item-object-custom menu-item-5101")
+        li = soup.find(
+            "li",
+            class_="menu-item menu-item-type-custom menu-item-object-custom menu-item-5101",
+        )
         url = li.find("a")["href"]
-        
+
         return url
     except Exception as e:
         logger.critical(f"Не удалось спарсить URL изменений: {e}")

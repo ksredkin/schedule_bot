@@ -8,9 +8,9 @@ class ImageCache:
             cls._instance.cache = {}
         return cls._instance
 
-    def get(self, image: str) -> dict|None:
+    def get(self, image: str) -> dict | None:
         return self.cache.get(image)
-    
+
     def set(self, image: str, image_id: int):
-        if not image in self.cache:
+        if image not in self.cache:
             self.cache[image] = image_id

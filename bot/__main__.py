@@ -9,30 +9,29 @@ from handlers.callback import callback_router
 from core.config import BOT_PHOTO_PATH
 from utils.logger import Logger
 from messages.common import before_start_description, profile_description
-from utils.schedule_cache import ScheduleCache
-from utils.changes_cache import ChangesCache
 from aiogram.types import BotCommand
 from services.update_changes_cache_service import start_update_changes_cache_service
 import subprocess
-from utils.image_cache import ImageCache
 from aiohttp_socks._errors import ProxyTimeoutError
 import sys
 from singbox2proxy import SingBoxProxy
 
 logger = Logger(__name__).get_logger()
 
-bot_commands = [BotCommand(command="start", description="👋 Приветственное сообщение"),
-                BotCommand(command="schedule", description="📆 Расписание на неделю"),
-                BotCommand(command="schedule_today", description="📅 Расписание на сегодня"),
-                BotCommand(command="schedule_tomorrow", description="📅 Расписание на завтра"),
-                BotCommand(command="bell", description="🔔 Время до звонка"),
-                BotCommand(command="changes", description="🔄 Замены"),
-                BotCommand(command="set_my_class", description="⚙️ Выбрать класс по умолчанию"),
-                ]
+bot_commands = [
+    BotCommand(command="start", description="👋 Приветственное сообщение"),
+    BotCommand(command="schedule", description="📆 Расписание на неделю"),
+    BotCommand(command="schedule_today", description="📅 Расписание на сегодня"),
+    BotCommand(command="schedule_tomorrow", description="📅 Расписание на завтра"),
+    BotCommand(command="bell", description="🔔 Время до звонка"),
+    BotCommand(command="changes", description="🔄 Замены"),
+    BotCommand(command="set_my_class", description="⚙️ Выбрать класс по умолчанию"),
+]
+
 
 async def setup_bot(bot: Bot):
     logger.info("Начата настройка бота")
-    
+
     try:
         await bot.set_my_name("Расписание")
         logger.info("Имя бота обновлено")
@@ -66,6 +65,7 @@ async def setup_bot(bot: Bot):
 
     logger.info("Настройка бота завершена")
 
+
 async def start_bot(bot: Bot):
     try:
         logger.info("Бот запущен")
@@ -73,10 +73,6 @@ async def start_bot(bot: Bot):
 
         subprocess.run(["alembic", "upgrade", "head"])
         await setup_bot(bot)
-
-        schedule_cache = ScheduleCache()
-        changes_cache = ChangesCache()
-        image_cache = ImageCache()
 
         dp = Dispatcher()
         dp.include_router(command_router)
@@ -89,33 +85,43 @@ async def start_bot(bot: Bot):
         logger.critical(f"Работа бота остановлена: {e}")
         sys.exit(1)
 
+
 async def main():
     try:
-        if os.getenv("PROXY"):    
+        if os.getenv("PROXY"):
             logger.info("Запуск с ипользованием proxy")
             session = AiohttpSession(proxy=os.getenv("PROXY"))
-            bot = Bot(os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html"))
-        
+            bot = Bot(
+                os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html")
+            )
+
         elif os.getenv("VLESS_PROXY"):
             logger.info("Запуск с ипользованием VLESS proxy")
             proxy = SingBoxProxy(os.getenv("VLESS_PROXY"))
             proxy.start()
 
             session = AiohttpSession(proxy=proxy.socks5_proxy_url)
-            bot = Bot(os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html"))
-        
+            bot = Bot(
+                os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html")
+            )
+
         else:
             logger.info("Запуск без proxy")
-            bot = Bot(os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode="html"))
+            bot = Bot(
+                os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode="html")
+            )
 
         bot_service = asyncio.create_task(start_bot(bot))
-        update_changes_cache_service = asyncio.create_task(start_update_changes_cache_service(bot))
+        update_changes_cache_service = asyncio.create_task(
+            start_update_changes_cache_service(bot)
+        )
         await bot_service
         await update_changes_cache_service
 
     except ProxyTimeoutError:
         logger.critical("Не удалось подключиться к proxy.")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

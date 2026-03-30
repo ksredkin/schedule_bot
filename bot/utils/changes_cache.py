@@ -8,7 +8,7 @@ class ChangesCache:
             cls._instance.changes = []
         return cls._instance
 
-    def get(self) -> list|None:
+    def get(self) -> list | None:
         return self.changes
 
     def set(self, changes: dict):

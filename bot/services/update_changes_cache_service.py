@@ -11,7 +11,8 @@ from utils.formatters import get_changes_message
 
 logger = Logger(__name__).get_logger()
 
-async def get_changes_table_rows() -> dict|None:
+
+async def get_changes_table_rows() -> dict | None:
     try:
         main_page = await ApiClient.get_main_page()
         changes_url = parse_changes_url(main_page)
@@ -28,12 +29,13 @@ async def get_changes_table_rows() -> dict|None:
         logger.critical(f"Не удалось получить строки таблицы изменений: {e}")
         return None
 
+
 async def start_update_changes_cache_service(bot: Bot):
     changes_cache = ChangesCache()
     table_rows = await get_changes_table_rows()
     changes_cache.set(table_rows)
     while True:
-        await asyncio.sleep(MINUTES_TO_CHECK_CHANGES*60)
+        await asyncio.sleep(MINUTES_TO_CHECK_CHANGES * 60)
         table_rows = await get_changes_table_rows()
         old_schedule = changes_cache.get()
 
@@ -60,7 +62,9 @@ async def start_update_changes_cache_service(bot: Bot):
                 try:
                     await bot.send_message(user.telegram_id, text)
                 except Exception as e:
-                    logger.warning(f"Не удалось отправить сообщение {user.telegram_id}: {e}")
+                    logger.warning(
+                        f"Не удалось отправить сообщение {user.telegram_id}: {e}"
+                    )
 
             logger.info("Кэш замен обновлен, участники уведомлены")
         else:
