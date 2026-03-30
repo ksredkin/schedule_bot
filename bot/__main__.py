@@ -1,20 +1,22 @@
-from aiogram import Dispatcher, Bot, types
-from aiogram.client.default import DefaultBotProperties
 import asyncio
-from dotenv import load_dotenv
 import os
-from aiogram.client.session.aiohttp import AiohttpSession
-from handlers.command import command_router
-from handlers.callback import callback_router
-from core.config import BOT_PHOTO_PATH
-from utils.logger import Logger
-from messages.common import before_start_description, profile_description
-from aiogram.types import BotCommand
-from services.update_changes_cache_service import start_update_changes_cache_service
 import subprocess
-from aiohttp_socks._errors import ProxyTimeoutError
 import sys
+
+from aiogram import Bot, Dispatcher, types
+from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.types import BotCommand
+from aiohttp_socks._errors import ProxyTimeoutError
+from dotenv import load_dotenv
 from singbox2proxy import SingBoxProxy
+
+from core.config import BOT_PHOTO_PATH
+from handlers.callback import callback_router
+from handlers.command import command_router
+from messages.common import before_start_description, profile_description
+from services.update_changes_cache_service import start_update_changes_cache_service
+from utils.logger import Logger
 
 logger = Logger(__name__).get_logger()
 
@@ -25,11 +27,12 @@ bot_commands = [
     BotCommand(command="schedule_tomorrow", description="📅 Расписание на завтра"),
     BotCommand(command="bell", description="🔔 Время до звонка"),
     BotCommand(command="changes", description="🔄 Замены"),
+    BotCommand(command="lesson", description="ℹ️ Информация о текущем уроке"),
     BotCommand(command="set_my_class", description="⚙️ Выбрать класс по умолчанию"),
 ]
 
 
-async def setup_bot(bot: Bot):
+async def setup_bot(bot: Bot) -> None:
     logger.info("Начата настройка бота")
 
     try:
@@ -66,7 +69,7 @@ async def setup_bot(bot: Bot):
     logger.info("Настройка бота завершена")
 
 
-async def start_bot(bot: Bot):
+async def start_bot(bot: Bot) -> None:
     try:
         logger.info("Бот запущен")
         load_dotenv()
@@ -86,30 +89,31 @@ async def start_bot(bot: Bot):
         sys.exit(1)
 
 
-async def main():
+async def main() -> None:
     try:
+        token = os.getenv("TOKEN")
+        if not isinstance(token, str):
+            logger.critical("Не найден токен бота в переменных окружения.")
+            sys.exit(1)
+
         if os.getenv("PROXY"):
             logger.info("Запуск с ипользованием proxy")
             session = AiohttpSession(proxy=os.getenv("PROXY"))
-            bot = Bot(
-                os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html")
-            )
+            bot = Bot(token, session, DefaultBotProperties(parse_mode="html"))
 
         elif os.getenv("VLESS_PROXY"):
             logger.info("Запуск с ипользованием VLESS proxy")
             proxy = SingBoxProxy(os.getenv("VLESS_PROXY"))
-            proxy.start()
+
+            if not proxy.running:
+                proxy.start()
 
             session = AiohttpSession(proxy=proxy.socks5_proxy_url)
-            bot = Bot(
-                os.getenv("TOKEN"), session, DefaultBotProperties(parse_mode="html")
-            )
+            bot = Bot(token, session, DefaultBotProperties(parse_mode="html"))
 
         else:
             logger.info("Запуск без proxy")
-            bot = Bot(
-                os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode="html")
-            )
+            bot = Bot(token, default=DefaultBotProperties(parse_mode="html"))
 
         bot_service = asyncio.create_task(start_bot(bot))
         update_changes_cache_service = asyncio.create_task(

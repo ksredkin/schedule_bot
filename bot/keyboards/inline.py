@@ -1,9 +1,9 @@
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 def create_inline_keyboard(
-    buttons: dict[str, str], adjust: list = [1], repeat: bool = True
+    buttons: dict[str, str], adjust: list[int] = [1], repeat: bool = True
 ) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for text, callback in buttons.items():
@@ -13,7 +13,7 @@ def create_inline_keyboard(
 
 
 def create_cancell_inline_keyboard(
-    buttons: dict[str, str], adjust: list = [1], repeat: bool = True
+    buttons: dict[str, str], adjust: list[int] = [1], repeat: bool = True
 ) -> InlineKeyboardMarkup:
     new_buttons = buttons.copy()
     new_buttons["🚫 Отмена"] = "cancell"

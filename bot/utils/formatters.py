@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Any, Dict, List
 
 emoji_prefixes = {
     "физическая": "🏀",
@@ -22,7 +23,7 @@ emoji_prefixes = {
 }
 
 
-def get_schedule_message(schedule: dict) -> str:
+def get_schedule_message(schedule: Dict[str, Dict[int, Dict[str, Any]]]) -> str:
     text = "<b>🗓️ Расписание на неделю:</b>\n\n"
 
     for day, lessons in schedule.items():
@@ -33,10 +34,17 @@ def get_schedule_message(schedule: dict) -> str:
             continue
 
         for number, lesson in lessons.items():
-            name = lesson.get("name")
-            time = lesson.get("time")
-            group = lesson.get("group")
-            cab = lesson.get("cab")
+            name: Any = lesson.get("name")
+            time: Any = lesson.get("time")
+            group: Any = lesson.get("group")
+            cab: Any = lesson.get("cab")
+
+            if (
+                not isinstance(name, str)
+                or not isinstance(time, str)
+                or not isinstance(cab, str)
+            ):
+                return "🚫 Ошибка при формировании расписания. Пожалуйста, попробуйте позже."
 
             emoji_prefix = emoji_prefixes.get(name.lower().split()[0], "")
 
@@ -46,8 +54,13 @@ def get_schedule_message(schedule: dict) -> str:
                 if group:
                     text += f"   ├ группа {group} → каб. {cab}\n"
 
-                for i, g in enumerate(lesson["groups"]):
-                    prefix = "└" if len(lesson["groups"]) - 1 - i == 0 else "├"
+                lessons_groups = lesson.get("groups")
+
+                if not lessons_groups:
+                    continue
+
+                for i, g in enumerate(lessons_groups):
+                    prefix = "└" if len(lessons_groups) - 1 - i == 0 else "├"
                     text += f"   {prefix} группа {g['group']} → каб. {g['cab']}\n"
 
             else:
@@ -58,7 +71,9 @@ def get_schedule_message(schedule: dict) -> str:
     return text
 
 
-def get_schedule_today_message(schedule: dict, day_of_week: str) -> str:
+def get_schedule_today_message(
+    schedule: Dict[int, Dict[str, Any]], day_of_week: str
+) -> str:
     text = f"<b>🗓️ Расписание на сегодня ({day_of_week.lower()}):</b>\n\n"
 
     if not schedule:
@@ -71,6 +86,13 @@ def get_schedule_today_message(schedule: dict, day_of_week: str) -> str:
         group = lesson.get("group")
         cab = lesson.get("cab")
 
+        if (
+            not isinstance(name, str)
+            or not isinstance(time, str)
+            or not isinstance(cab, str)
+        ):
+            continue
+
         emoji_prefix = emoji_prefixes.get(name.lower().split()[0], "")
 
         if "groups" in lesson:
@@ -93,7 +115,9 @@ def get_schedule_today_message(schedule: dict, day_of_week: str) -> str:
     return text
 
 
-def get_schedule_tomorrow_message(schedule: dict, day_of_week: str) -> str:
+def get_schedule_tomorrow_message(
+    schedule: Dict[int, Dict[str, Any]], day_of_week: str
+) -> str:
     text = f"<b>🗓️ Расписание на завтра ({day_of_week}):</b>\n\n"
 
     if not schedule:
@@ -106,6 +130,13 @@ def get_schedule_tomorrow_message(schedule: dict, day_of_week: str) -> str:
         group = lesson.get("group")
         cab = lesson.get("cab")
 
+        if (
+            not isinstance(name, str)
+            or not isinstance(time, str)
+            or not isinstance(cab, str)
+        ):
+            continue
+
         emoji_prefix = emoji_prefixes.get(name.lower().split()[0], "")
 
         if "groups" in lesson:
@@ -128,11 +159,18 @@ def get_schedule_tomorrow_message(schedule: dict, day_of_week: str) -> str:
     return text
 
 
-def get_lesson_message(number: int, lesson: dict) -> str:
+def get_lesson_message(number: int, lesson: Dict[str, Any]) -> str:
     name = lesson.get("name")
     time = lesson.get("time")
     group = lesson.get("group")
     cab = lesson.get("cab")
+
+    if (
+        not isinstance(name, str)
+        or not isinstance(time, str)
+        or not isinstance(cab, str)
+    ):
+        return "Ошибка: данные урока не найдены"
 
     emoji_prefix = emoji_prefixes.get(name.lower().split()[0], "")
 
@@ -164,23 +202,25 @@ def get_lesson_message(number: int, lesson: dict) -> str:
     return text
 
 
-def get_next_lesson_message(next_time_to_bell: timedelta, next_lesson: dict) -> str:
+def get_next_lesson_message(
+    next_time_to_bell: timedelta, next_lesson: Dict[str, Any]
+) -> str:
     name = next_lesson.get("name")
     time = next_lesson.get("time")
     group = next_lesson.get("group")
     cab = next_lesson.get("cab")
 
+    if (
+        not isinstance(name, str)
+        or not isinstance(time, str)
+        or not isinstance(cab, str)
+    ):
+        return "Ошибка: данные урока не найдены"
+
     emoji_prefix = emoji_prefixes.get(name.lower().split()[0], "")
 
-    try:
-        minutes = int(next_time_to_bell.total_seconds() // 60)
-    except Exception:
-        minutes = next_time_to_bell.total_seconds() // 60
-
-    try:
-        seconds = int(next_time_to_bell.total_seconds() % 60)
-    except Exception:
-        seconds = next_time_to_bell.total_seconds() % 60
+    minutes: int = int(next_time_to_bell.total_seconds() // 60)
+    seconds: int = int(next_time_to_bell.total_seconds() % 60)
 
     if group:
         text = f"""<b>⏰ Следующий урок: {emoji_prefix} {name}</b>
@@ -208,20 +248,13 @@ def get_next_lesson_message(next_time_to_bell: timedelta, next_lesson: dict) -> 
 
 
 def get_bell_message(time_to_bell: timedelta) -> str:
-    try:
-        minutes = int(time_to_bell.total_seconds() // 60)
-    except Exception:
-        minutes = time_to_bell.total_seconds() // 60
-
-    try:
-        seconds = int(time_to_bell.total_seconds() % 60)
-    except Exception:
-        seconds = time_to_bell.total_seconds() % 60
+    minutes: int = int(time_to_bell.total_seconds() // 60)
+    seconds: int = int(time_to_bell.total_seconds() % 60)
 
     return f"""🔔 Время до звонка: {minutes} минут {seconds} секунд"""
 
 
-def get_changes_message(rows: list, _grade: str) -> str:
+def get_changes_message(rows: List[List[str]], _grade: str) -> str:
     text = "<b>🔄 Замены уроков:</b>\n\n"
 
     cleaned_rows = []
@@ -243,7 +276,7 @@ def get_changes_message(rows: list, _grade: str) -> str:
 
         cleaned_rows.append(row)
 
-    replaces = {}
+    replaces: Dict[str, List[List[str]]] = {}
 
     for row in cleaned_rows:
         lesson, grade, subject, teacher, new_subject, cab = row

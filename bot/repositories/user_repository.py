@@ -1,18 +1,19 @@
+from sqlalchemy import select
+
 from database.connection import session
 from database.orm_models import User
 from utils.logger import Logger
-from sqlalchemy import select
 
 logger = Logger(__name__).get_logger()
 
 
 class UserRepository:
     @staticmethod
-    async def get_users() -> User | None:
+    async def get_users() -> list[User] | None:
         async with session() as conn:
             try:
                 result = await conn.execute(select(User))
-                users = result.scalars().all()
+                users = list(result.scalars().all())
                 return users
             except Exception as e:
                 logger.critical(
@@ -36,7 +37,7 @@ class UserRepository:
                 return None
 
     @staticmethod
-    async def create_user(telegram_id: int, grade: str) -> User | None:
+    async def create_user(telegram_id: int, grade: str | None) -> User | None:
         async with session() as conn:
             try:
                 user = User(telegram_id=telegram_id, grade=grade)
@@ -64,7 +65,7 @@ class UserRepository:
                 if not user:
                     return None
 
-                user.grade = grade
+                user.grade = grade  # type: ignore
 
                 await conn.commit()
                 await conn.refresh(user)

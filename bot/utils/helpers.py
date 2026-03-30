@@ -1,13 +1,15 @@
-from datetime import datetime, timedelta
-from utils.logger import Logger
-import pytz
 import csv
+from datetime import datetime, time, timedelta
 from io import StringIO
+
+import pytz
 from aiogram import types
+
 from repositories.user_repository import UserRepository
-from utils.schedule_cache import ScheduleCache
 from utils.api_client import ApiClient
+from utils.logger import Logger
 from utils.parser import parse_schedule
+from utils.schedule_cache import ScheduleCache
 
 logger = Logger(__name__).get_logger()
 
@@ -72,16 +74,22 @@ classes = [
 ]
 
 
-def parse_time_range(time_str: str) -> tuple[datetime.time, datetime.time] | None:
-    start_str, end_str = time_str.split(" - ")
+def parse_time_range(time_str: str) -> tuple[time, time] | tuple[None, None]:
+    try:
+        start_str, end_str = time_str.split(" - ")
 
-    start = datetime.strptime(start_str, "%H:%M").time()
-    end = datetime.strptime(end_str, "%H:%M").time()
+        start = datetime.strptime(start_str, "%H:%M").time()
+        end = datetime.strptime(end_str, "%H:%M").time()
 
-    return start, end
+        return start, end
+    except Exception as e:
+        logger.critical(f"Не удалось спарсить диапазон времени: {e}")
+        return None, None
 
 
-def get_current_lesson(schedule: dict) -> tuple[None, None] | tuple[int, dict]:
+def get_current_lesson(
+    schedule: dict[str, dict[int, dict[str, str | None]]],
+) -> tuple[None, None] | tuple[int, dict[str, str | None]]:
     now = datetime.now(pytz.timezone("Europe/Moscow")).time()
     today = days_map.get(datetime.now().weekday())
 
@@ -89,7 +97,14 @@ def get_current_lesson(schedule: dict) -> tuple[None, None] | tuple[int, dict]:
         return None, None
 
     for number, lesson in schedule[today].items():
-        start, end = parse_time_range(lesson["time"])
+        lesson_time = lesson.get("time")
+        if lesson_time is None:
+            return None, None
+
+        start, end = parse_time_range(lesson_time)
+
+        if start is None or end is None:
+            return None, None
 
         if start <= now <= end:
             return number, lesson
@@ -97,7 +112,9 @@ def get_current_lesson(schedule: dict) -> tuple[None, None] | tuple[int, dict]:
     return None, None
 
 
-def get_time_to_bell(schedule: dict) -> tuple[None, None] | tuple[timedelta, dict]:
+def get_time_to_bell(
+    schedule: dict[str, dict[int, dict[str, str | None]]],
+) -> tuple[None, None] | tuple[timedelta, dict[str, str | None]]:
     now = datetime.now(pytz.timezone("Europe/Moscow"))
     today = days_map.get(datetime.now().weekday())
 
@@ -107,7 +124,15 @@ def get_time_to_bell(schedule: dict) -> tuple[None, None] | tuple[timedelta, dic
     lessons = list(schedule[today].items())
 
     for i, (_, lesson) in enumerate(lessons):
-        start, end = parse_time_range(lesson["time"])
+        lesson_time = lesson.get("time")
+
+        if not lesson_time:
+            return None, None
+
+        start, end = parse_time_range(lesson_time)
+
+        if not start or not end:
+            return None, None
 
         start_dt = now.replace(hour=start.hour, minute=start.minute, second=0)
         end_dt = now.replace(hour=end.hour, minute=end.minute, second=0)
@@ -117,7 +142,19 @@ def get_time_to_bell(schedule: dict) -> tuple[None, None] | tuple[timedelta, dic
 
         if i < len(lessons) - 1:
             next_lesson = lessons[i + 1][1]
-            next_start, _ = parse_time_range(next_lesson["time"])
+
+            if not next_lesson:
+                return None, None
+
+            next_lesson_time = next_lesson.get("time")
+
+            if not next_lesson_time:
+                return None, None
+
+            next_start, _ = parse_time_range(next_lesson_time)
+
+            if not next_start:
+                return None, None
 
             next_start_dt = now.replace(
                 hour=next_start.hour, minute=next_start.minute, second=0
@@ -129,7 +166,7 @@ def get_time_to_bell(schedule: dict) -> tuple[None, None] | tuple[timedelta, dic
     return None, None
 
 
-def get_changes(csv_text: str) -> list | None:
+def get_changes(csv_text: str) -> list[list[str]] | None:
     try:
         reader = csv.reader(StringIO(csv_text))
         rows = list(reader)
@@ -140,9 +177,15 @@ def get_changes(csv_text: str) -> list | None:
 
 
 async def resolve_grade(message: types.Message, command_name: str) -> str | None:
+    if not message.text:
+        return None
+
     parts = message.text.split()
 
     if len(parts) == 1:
+        if not message.from_user:
+            return None
+
         user = await UserRepository.get_user_by_telegram_id(message.from_user.id)
 
         if not user or not user.grade:
@@ -152,7 +195,8 @@ async def resolve_grade(message: types.Message, command_name: str) -> str | None
             )
             return None
 
-        return user.grade
+        grade = str(user.grade)
+        return grade
 
     elif len(parts) < 4:
         grade = " ".join(parts[1:]).upper()
@@ -171,9 +215,11 @@ async def resolve_grade(message: types.Message, command_name: str) -> str | None
         return None
 
 
-async def get_schedule_by_grade(message: types.Message, grade: str) -> dict | None:
+async def get_schedule_by_grade(
+    message: types.Message, grade: str
+) -> dict[str, dict[int, dict[str, str | None]]] | None:
     cache = ScheduleCache()
-    rasp = cache.get(grade)
+    rasp: dict[str, dict[int, dict[str, str | None]]] | None = cache.get(grade)
 
     if rasp:
         logger.info(f"Расписание для класса {grade} получено из кэша")

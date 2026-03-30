@@ -1,12 +1,13 @@
-from utils.logger import Logger
 import httpx
+
+from utils.logger import Logger
 
 logger = Logger(__name__).get_logger()
 
 
 class ApiClient:
     @staticmethod
-    async def get_grade_schedule(grade: str) -> dict | None:
+    async def get_grade_schedule(grade: str) -> str | None:
         try:
             url = "https://vplicei.org/?page_id=465"
             data = {"KlassRasp": grade}

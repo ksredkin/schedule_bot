@@ -16,6 +16,7 @@ asyncpg = "^0.31.0"
 pytz = "^2026.1.post1"
 singbox2proxy = "^0.2.7"
 ruff = "^0.15.8"
+mypy = "^1.19.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -32,3 +33,13 @@ ignore = ["E501"]
 
 [tool.ruff.format]
 quote-style = "double"
+
+[tool.mypy]
+python_version = 3.14
+ignore_missing_imports = true
+disallow_untyped_defs = true
+strict = true
+
+[[tool.mypy.overrides]]
+module = "database.orm_models"
+ignore_errors = true

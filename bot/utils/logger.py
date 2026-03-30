@@ -1,14 +1,15 @@
 import logging
-from core.config import LOGS_PATH
 import os
+
+from core.config import LOGS_PATH
 
 
 class Logger:
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.logger = logging.getLogger(name)
         self.setup_logger()
 
-    def setup_logger(self):
+    def setup_logger(self) -> None:
         self.logger.setLevel(logging.INFO)
 
         stream = logging.StreamHandler()

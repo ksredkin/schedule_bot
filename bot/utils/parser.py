@@ -1,25 +1,35 @@
+from typing import Any, Dict
+
 from bs4 import BeautifulSoup
+from bs4.element import Tag
+
 from utils.logger import Logger
 
 logger = Logger(__name__).get_logger()
 
 
-def parse_schedule(html: str) -> dict | None:
+def parse_schedule(html: str) -> Dict[str, Dict[int, Dict[str, Any]]] | None:
     try:
         soup = BeautifulSoup(html, "lxml")
 
         table = soup.find("table", class_="rasp")
+
+        if not isinstance(table, Tag):
+            logger.critical("Не удалось найти таблицу с расписанием")
+            return None
+
         rows = table.find_all("tr")
 
-        result = {}
+        result: Dict[str, Dict[int, Dict[str, Any]]] = {}
 
-        current_day = None
-        current_lesson = None
+        current_day: str | None = None
+        current_lesson: int | None = None
 
         for row in rows:
             if row.find("h3"):
                 current_day = row.getText(strip=True)
-                result[current_day] = {}
+                if current_day:
+                    result[current_day] = {}
                 continue
 
             tds = row.find_all("td")
@@ -33,7 +43,7 @@ def parse_schedule(html: str) -> dict | None:
             group = tds[3].get_text(strip=True)
             cab = tds[4].get_text(strip=True)
 
-            if number:
+            if number and current_day:
                 current_lesson = int(number)
 
                 result[current_day][current_lesson] = {
@@ -44,7 +54,7 @@ def parse_schedule(html: str) -> dict | None:
                 }
 
             else:
-                if current_lesson is None:
+                if current_lesson is None or current_day is None:
                     continue
 
                 lesson = result[current_day][current_lesson]
@@ -68,7 +78,20 @@ def parse_changes_url(html: str) -> str | None:
             "li",
             class_="menu-item menu-item-type-custom menu-item-object-custom menu-item-5101",
         )
-        url = li.find("a")["href"]
+        if not isinstance(li, Tag):
+            logger.critical("Не удалось найти элемент с URL изменений")
+            return None
+
+        a_tag = li.find("a")
+        if not isinstance(a_tag, Tag):
+            logger.critical("Не удалось найти ссылку с URL изменений")
+            return None
+
+        url = a_tag.get("href")
+
+        if not isinstance(url, str):
+            logger.critical("Не удалось найти URL изменений")
+            return None
 
         return url
     except Exception as e:
