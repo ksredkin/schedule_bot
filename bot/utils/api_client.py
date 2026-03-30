@@ -11,7 +11,7 @@ class ApiClient:
             data = {"KlassRasp": grade}
 
             async with httpx.AsyncClient() as client:
-                response = await client.post(url, data=data)
+                response = await client.post(url, data=data, timeout=5.0)
                 html = response.text
             
             return html
@@ -25,7 +25,7 @@ class ApiClient:
             url = "https://vplicei.org"
 
             async with httpx.AsyncClient() as client:
-                response = await client.get(url)
+                response = await client.get(url, timeout=5.0)
                 html = response.text
             
             return html
@@ -37,7 +37,7 @@ class ApiClient:
     async def get_file(url: str) -> str|None:
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get(url, follow_redirects=True)
+                response = await client.get(url, follow_redirects=True, timeout=5.0)
                 html = response.text
             
             return html
