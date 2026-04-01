@@ -1,4 +1,5 @@
 import asyncio
+import re
 
 from aiogram import Bot
 
@@ -50,93 +51,126 @@ async def get_changes_table_rows() -> list[list[str]] | None:
         return None
 
 
+# Сгенерировано Gemini
 def parse_changes_table_rows(
-    table_rows: list[list[str]],
-) -> dict[str, list[dict[str, str | None]]]:
-    changes_by_grade: dict[str, list[dict[str, str | None]]] = {}
+    rows: list[list[str]],
+) -> dict[str, dict[str, list[dict[str, str]]]] | None:
+    result: dict[str, dict[str, list[dict[str, str]]]] = {}
+    current_date = None
+    collecting_data = False
+    date_pattern = re.compile(r"(\d{2}\.\d{2}\.\d{4})")
 
-    for row in table_rows[1:]:
-        if len(row) < 5:
+    for row in rows:
+        row_text = " ".join(filter(None, map(str, row)))
+        date_match = date_pattern.search(row_text)
+
+        if date_match:
+            current_date = date_match.group(1)
+            if current_date not in result:
+                result[current_date] = {}
+            collecting_data = False
             continue
 
-        grade = row[0].strip().upper()
-        time = row[1].strip()
-        subject = row[2].strip()
-        teacher = row[3].strip()
-        room = row[4].strip()
+        row_joined = "".join(map(str, row))
+        if "Урок" in row_joined and "Предмет" in row_joined:
+            collecting_data = True
+            continue
 
-        change_info: dict[str, str | None] = {
-            "time": time,
-            "subject": subject,
-            "teacher": teacher,
-            "room": room,
-        }
+        if collecting_data and len(row) >= 2 and row[0] and row[1]:
+            if str(row[0]).strip().lower() == "урок":
+                continue
 
-        if grade not in changes_by_grade:
-            changes_by_grade[grade] = []
+            if current_date:
+                class_name = str(row[1]).strip().lower()
+                if class_name not in result[current_date]:
+                    result[current_date][class_name] = []
 
-        changes_by_grade[grade].append(change_info)
+                result[current_date][class_name].append(
+                    {
+                        "lesson_num": str(row[0]).strip(),
+                        "subject_orig": str(row[2]).strip(),
+                        "teacher": str(row[3]).strip(),
+                        "subject_new": str(row[4]).strip(),
+                        "room": str(row[5]).strip() if len(row) > 5 else "",
+                    }
+                )
 
-    return changes_by_grade
+        if not any(row):
+            collecting_data = False
+
+    return result
 
 
 async def start_update_changes_cache_service(bot: Bot) -> None:
     changes_cache = ChangesCache()
-    while True:
-        table_rows = await get_changes_table_rows()
-        old_schedule = changes_cache.get()
 
-        if not table_rows:
-            logger.warning(
-                "Не удалось получить новые данные о заменах, пропуск проверки изменений"
-            )
+    first_raw_rows = await get_changes_table_rows()
+
+    if first_raw_rows:
+        changes_cache.set(first_raw_rows)
+    else:
+        logger.warning("Не удалось получить новые данные, пропуск...")
+
+    while True:
+        raw_rows = await get_changes_table_rows()
+
+        if not raw_rows:
+            logger.warning("Не удалось получить новые данные, пропуск...")
+            await asyncio.sleep(MINUTES_TO_CHECK_CHANGES * 60)
             continue
 
-        if table_rows != old_schedule:
-            changes_cache.set(table_rows)
+        current_parsed_all = parse_changes_table_rows(raw_rows)
 
+        if not current_parsed_all:
+            logger.warning("Не удалось распарсить новые данные, пропуск...")
+            await asyncio.sleep(MINUTES_TO_CHECK_CHANGES * 60)
+            continue
+
+        old_raw = changes_cache.get()
+
+        if raw_rows != old_raw:
             users = await UserRepository.get_users()
 
             if not users:
-                logger.info(
-                    "Нет зарегистрированных пользователей для уведомления об изменениях"
-                )
+                logger.info("Нет пользователей для рассылки обновлений")
+                changes_cache.set(raw_rows)
+                await asyncio.sleep(MINUTES_TO_CHECK_CHANGES * 60)
                 continue
 
             for user in users:
                 grade = user.grade
 
-                if not grade:
+                if grade is None:
                     continue
 
-                if grade not in table_rows:
-                    continue
-
-                if not old_schedule:
-                    continue
-
-                if parse_changes_table_rows(old_schedule).get(
-                    str(grade)
-                ) == parse_changes_table_rows(table_rows).get(str(grade)):
-                    continue
-
-                if not table_rows:
-                    continue
+                grade = str(grade)  # type: ignore
+                grade = grade.lower().strip()
 
                 text = "🔄 <b>Обновились замены!</b>\n\n"
+                changes_message = get_changes_message(current_parsed_all, grade)
 
-                text += get_changes_message(table_rows, str(grade))
+                if changes_message is None:
+                    logger.warning(
+                        f"Не удалось сформировать сообщение с заменами для пользователя {user.telegram_id} и класса {grade}"
+                    )
+                    continue
+
+                text += (
+                    changes_message
+                    if changes_message
+                    else "Ошибка при формировании сообщения с заменами."
+                )
 
                 try:
-                    user_telegram_id: int = int(user.telegram_id)
-                    await bot.send_message(user_telegram_id, text)
+                    await bot.send_message(int(user.telegram_id), text)
                 except Exception as e:
                     logger.warning(
-                        f"Не удалось отправить сообщение {user.telegram_id}: {e}"
+                        f"Ошибка отправки пользователю {user.telegram_id}: {e}"
                     )
 
-            logger.info("Кэш замен обновлен, участники уведомлены")
+            changes_cache.set(raw_rows)
+            logger.info("Рассылка обновлений завершена")
         else:
-            logger.info("Замены на сайте не изменились")
+            logger.info("Изменений в таблице нет")
 
         await asyncio.sleep(MINUTES_TO_CHECK_CHANGES * 60)

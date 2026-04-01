@@ -7,6 +7,7 @@ from aiogram.filters import Command, CommandStart
 from keyboards.inline import create_cancell_inline_keyboard
 from messages.common import start_message
 from repositories.user_repository import UserRepository
+from services.update_changes_cache_service import parse_changes_table_rows
 from utils.changes_cache import ChangesCache
 from utils.formatters import (
     get_bell_message,
@@ -300,4 +301,12 @@ async def changes(message: types.Message) -> None:
         )
         return
 
-    await message.answer(get_changes_message(table_rows, grade.lower()))
+    changes = parse_changes_table_rows(table_rows)
+
+    if not changes:
+        await message.answer(
+            "🚫 <b>Ошибка:</b> не удалось сформировать сообщение с заменами. Попробуйте позже."
+        )
+        return
+
+    await message.answer(get_changes_message(changes, grade.lower()))

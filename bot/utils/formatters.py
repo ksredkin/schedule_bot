@@ -254,58 +254,45 @@ def get_bell_message(time_to_bell: timedelta) -> str:
     return f"""🔔 Время до звонка: {minutes} минут {seconds} секунд"""
 
 
-def get_changes_message(rows: List[List[str]], _grade: str) -> str:
-    text = "<b>🔄 Замены уроков:</b>\n\n"
+def get_changes_message(
+    all_changes: Dict[str, Dict[str, List[Dict[str, str]]]], _grade: str
+) -> str:
+    _grade = _grade.lower().strip()
+    text = f"<b>🔄 Замены уроков для {_grade.upper()}:</b>\n\n"
 
-    cleaned_rows = []
+    found_any = False
 
-    for row in rows:
-        if len(row) < 6:
-            continue
+    for date, grades in all_changes.items():
+        if _grade in grades:
+            found_any = True
+            text += f"📅 <b>На {date}:</b>\n"
 
-        if all(not cell.strip() for cell in row):
-            continue
+            for replace in grades[_grade]:
+                l_num = replace["lesson_num"]
+                s_orig = replace["subject_orig"]
+                s_new = replace["subject_new"]
+                teacher = replace["teacher"]
+                room = replace["room"]
 
-        if row[0].lower() == "урок":
-            continue
+                text += f"{l_num}. {s_orig}"
 
-        lesson, grade, _, _, _, _ = row
+                if s_new and s_new != s_orig:
+                    text += f" ➔ <b>{s_new}</b>"
 
-        if not grade or not lesson:
-            continue
+                if teacher and teacher.lower() != "нет":
+                    text += f" ({teacher})"
+                elif teacher.lower() == "нет":
+                    text += " (❌ Урока нет)"
 
-        cleaned_rows.append(row)
+                if room:
+                    text += f" | каб. {room}"
 
-    replaces: Dict[str, List[List[str]]] = {}
+                text += "\n"
+            text += "\n"
 
-    for row in cleaned_rows:
-        lesson, grade, subject, teacher, new_subject, cab = row
-
-        if grade not in replaces:
-            replaces[grade] = []
-
-        replaces[grade].append([lesson, subject, teacher, new_subject, cab])
-
-    current_grade_replaces = replaces.get(_grade.lower())
-
-    if not current_grade_replaces:
-        text += "Замен не найдено."
-        return text
-
-    for replace in current_grade_replaces:
-        lesson, subject, teacher, new_subject, cab = replace
-
-        text += f"{lesson} урок: {subject}"
-
-        if new_subject:
-            text += f" → {new_subject}"
-
-        if teacher and teacher != "нет":
-            text += f" ({teacher})"
-
-        if cab:
-            text += f" | каб. {cab}"
-
-        text += "\n\n"
+    if not found_any:
+        return (
+            f"<b>🔄 Замены уроков:</b>\n\nЗамен для класса {_grade.upper()} не найдено."
+        )
 
     return text
