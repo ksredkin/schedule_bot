@@ -127,6 +127,7 @@ async def start_update_changes_cache_service(bot: Bot) -> None:
             continue
 
         old_raw = changes_cache.get()
+        old_parsed_all = parse_changes_table_rows(old_raw) if old_raw else None
 
         if raw_rows != old_raw:
             users = await UserRepository.get_users()
@@ -145,6 +146,19 @@ async def start_update_changes_cache_service(bot: Bot) -> None:
 
                 grade = str(grade)  # type: ignore
                 grade = grade.lower().strip()
+
+                has_changes_for_user = False
+
+                for date in current_parsed_all:
+                    new_grade_data = current_parsed_all.get(date, {}).get(grade)
+                    old_grade_data = (old_parsed_all or {}).get(date, {}).get(grade)
+
+                    if new_grade_data != old_grade_data:
+                        has_changes_for_user = True
+                        break
+
+                if not has_changes_for_user:
+                    continue
 
                 text = "🔄 <b>Обновились замены!</b>\n\n"
                 changes_message = get_changes_message(current_parsed_all, grade)
