@@ -1,5 +1,10 @@
 import httpx
 
+from core.config import (
+    GET_CHANGES_FILE_TIMEOUT,
+    GET_MAIN_PAGE_TIMEOUT,
+    GET_SCHEDULE_TIMEOUT,
+)
 from utils.logger import Logger
 
 logger = Logger(__name__).get_logger()
@@ -13,7 +18,9 @@ class ApiClient:
             data = {"KlassRasp": grade}
 
             async with httpx.AsyncClient() as client:
-                response = await client.post(url, data=data, timeout=5.0)
+                response = await client.post(
+                    url, data=data, timeout=GET_SCHEDULE_TIMEOUT
+                )
                 html = response.text
 
             return html
@@ -29,7 +36,7 @@ class ApiClient:
             url = "https://vplicei.org"
 
             async with httpx.AsyncClient() as client:
-                response = await client.get(url, timeout=5.0)
+                response = await client.get(url, timeout=GET_MAIN_PAGE_TIMEOUT)
                 html = response.text
 
             return html
@@ -41,7 +48,9 @@ class ApiClient:
     async def get_file(url: str) -> str | None:
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get(url, follow_redirects=True, timeout=5.0)
+                response = await client.get(
+                    url, follow_redirects=True, timeout=GET_CHANGES_FILE_TIMEOUT
+                )
                 html = response.text
 
             return html
