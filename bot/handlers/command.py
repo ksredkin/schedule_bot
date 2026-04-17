@@ -8,7 +8,7 @@ from keyboards.inline import create_cancell_inline_keyboard
 from messages.common import start_message
 from repositories.user_repository import UserRepository
 from services.update_changes_cache_service import parse_changes_table_rows
-from utils.changes_cache import ChangesCache
+from utils.changes_cache import get_changes_from_cache
 from utils.formatters import (
     get_bell_message,
     get_changes_message,
@@ -26,12 +26,12 @@ from utils.helpers import (
     get_time_to_bell,
     resolve_grade,
 )
-from utils.image_cache import ImageCache
+from utils.image_cache import set_image_id_in_cache, get_image_id_from_cache
 from utils.logger import Logger
+from utils.user_class_cache import set_user_class_in_cache, get_user_class_from_cache
 
 command_router = Router()
 logger = Logger(__name__).get_logger()
-image_cache = ImageCache()
 
 
 @command_router.message(CommandStart())
@@ -42,12 +42,28 @@ async def start(message: types.Message) -> None:
 
     logger.info(f"Пользователь @{message.from_user.username} вызвал команду /start")
 
-    user = await UserRepository.get_user_by_telegram_id(message.from_user.id)
+    user_class_in_cache = await get_user_class_from_cache(message.from_user.id)
 
-    if not user:
-        await UserRepository.create_user(telegram_id=message.from_user.id, grade=None)
+    if user_class_in_cache is None:
+        logger.info(f"Класс пользователя @{message.from_user.username} не найден в кэше")
+        user = await UserRepository.get_user_by_telegram_id(message.from_user.id)
 
-    if image_cache.get("start") is None:
+        if not user:
+            logger.info(f"Пользователь @{message.from_user.username} не найден в базе данных, создается новый пользователь")
+            await UserRepository.create_user(telegram_id=message.from_user.id, grade=None)
+            await set_user_class_in_cache(message.from_user.id, None)
+        else:
+            if user.grade:
+                logger.info(f"Класс пользователя @{message.from_user.username} найден в базе данных: {user.grade}, сохраняется в кэше")
+                await set_user_class_in_cache(message.from_user.id, str(user.grade))
+            else:
+                logger.info(f"Класс пользователя @{message.from_user.username} не установлен в базе данных")
+                await set_user_class_in_cache(message.from_user.id, None)
+
+    elif user_class_in_cache is False:
+        logger.info(f"Класс пользователя @{message.from_user.username} установлен как None в кэше")
+
+    if await get_image_id_from_cache("start") is None:
         try:
             image = types.FSInputFile("./img/bot.png")
             message = await message.answer_photo(image, caption=start_message)
@@ -57,12 +73,12 @@ async def start(message: types.Message) -> None:
                 await message.answer(start_message)
                 return
 
-            image_cache.set("start", message.photo[-1].file_id)
+            await set_image_id_in_cache("start", message.photo[-1].file_id)
         except TelegramNetworkError:
             logger.warning("Не удалось отправить ответ с фото на /start")
             await message.answer(start_message)
     else:
-        cached_image_id = image_cache.get("start")
+        cached_image_id = await get_image_id_from_cache("start")
 
         if not isinstance(cached_image_id, str):
             logger.warning(
@@ -292,21 +308,12 @@ async def changes(message: types.Message) -> None:
         f"Пользователь @{message.from_user.username} вызвал команду /changes для класса {grade}"
     )
 
-    changes_cache = ChangesCache()
-    table_rows = changes_cache.get()
+    changes = await get_changes_from_cache()
 
-    if not table_rows:
+    if changes is None:
         await message.answer(
             "🚫 <b>Ошибка:</b> не удалось получить информацию о заменах. Попробуйте позже."
         )
         return
-
-    changes = parse_changes_table_rows(table_rows)
-
-    if not changes:
-        await message.answer(
-            "🚫 <b>Ошибка:</b> не удалось сформировать сообщение с заменами. Попробуйте позже."
-        )
-        return
-
+    
     await message.answer(get_changes_message(changes, grade.lower()))

@@ -1,6 +1,7 @@
 from aiogram import F, Router, types
 
 from repositories.user_repository import UserRepository
+from utils.user_class_cache import set_user_class_in_cache
 from utils.logger import Logger
 
 callback_router = Router()
@@ -22,6 +23,8 @@ async def process_class(callback: types.CallbackQuery) -> None:
         await UserRepository.create_user(callback.from_user.id, grade)
     else:
         await UserRepository.update_user_grade(callback.from_user.id, grade)
+
+    await set_user_class_in_cache(callback.from_user.id, grade)
 
     callback_message = callback.message
     if not callback_message or not hasattr(callback_message, "edit_text"):

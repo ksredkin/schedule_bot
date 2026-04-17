@@ -1,15 +1,22 @@
-class ChangesCache:
-    _instance = None
-    changes: list[list[str]] = []
+from redis_client.client import r
+from utils.logger import Logger
+import json
+from core.config import CHANGES_CACHE_EXPIRATION_SECONDS
 
-    def __new__(cls) -> ChangesCache:
-        if not cls._instance:
-            cls._instance = super().__new__(cls)
-            cls._instance.changes = []
-        return cls._instance
+logger = Logger(__name__).get_logger()
 
-    def get(self) -> list[list[str]] | None:
-        return self.changes
+async def get_changes_from_cache() -> dict[str, dict[str, list[dict[str, str]]]] | None:
+    changes = await r.get("changes")
+    if changes is None:
+        logger.info("Замены не найдены в кэше")
+    else:
+        logger.info("Замены найдены в кэше")
+    try:
+        return json.loads(changes) if changes else None
+    except Exception:
+        logger.warning("Не удалось распарсить кэш замен, очищаем")
+        return None
 
-    def set(self, changes: list[list[str]]) -> None:
-        self.changes = changes
+async def set_changes_in_cache(changes: dict[str, dict[str, list[dict[str, str]]]]) -> None:
+    await r.set("changes", json.dumps(changes), ex=CHANGES_CACHE_EXPIRATION_SECONDS)
+    logger.info("Замены сохранены в кэше")

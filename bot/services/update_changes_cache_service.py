@@ -1,12 +1,12 @@
 import asyncio
 import re
+from utils.changes_cache import set_changes_in_cache, get_changes_from_cache
 
 from aiogram import Bot
 
 from core.config import MINUTES_TO_CHECK_CHANGES
 from repositories.user_repository import UserRepository
 from utils.api_client import ApiClient
-from utils.changes_cache import ChangesCache
 from utils.formatters import get_changes_message
 from utils.helpers import get_changes
 from utils.logger import Logger
@@ -102,12 +102,11 @@ def parse_changes_table_rows(
 
 
 async def start_update_changes_cache_service(bot: Bot) -> None:
-    changes_cache = ChangesCache()
-
     first_raw_rows = await get_changes_table_rows()
 
     if first_raw_rows:
-        changes_cache.set(first_raw_rows)
+        current_parsed_all = parse_changes_table_rows(first_raw_rows)
+        await set_changes_in_cache(current_parsed_all)
     else:
         logger.warning("Не удалось получить новые данные, пропуск...")
 
@@ -121,20 +120,19 @@ async def start_update_changes_cache_service(bot: Bot) -> None:
 
         current_parsed_all = parse_changes_table_rows(raw_rows)
 
-        if not current_parsed_all:
+        if current_parsed_all is None:
             logger.warning("Не удалось распарсить новые данные, пропуск...")
             await asyncio.sleep(MINUTES_TO_CHECK_CHANGES * 60)
             continue
 
-        old_raw = changes_cache.get()
-        old_parsed_all = parse_changes_table_rows(old_raw) if old_raw else None
+        old_parsed_all = await get_changes_from_cache()
 
-        if raw_rows != old_raw:
+        if current_parsed_all != old_parsed_all:
             users = await UserRepository.get_users()
 
             if not users:
                 logger.info("Нет пользователей для рассылки обновлений")
-                changes_cache.set(raw_rows)
+                await set_changes_in_cache(current_parsed_all)
                 await asyncio.sleep(MINUTES_TO_CHECK_CHANGES * 60)
                 continue
 
@@ -182,7 +180,7 @@ async def start_update_changes_cache_service(bot: Bot) -> None:
                         f"Ошибка отправки пользователю {user.telegram_id}: {e}"
                     )
 
-            changes_cache.set(raw_rows)
+            await set_changes_in_cache(current_parsed_all)
             logger.info("Рассылка обновлений завершена")
         else:
             logger.info("Изменений в таблице нет")

@@ -3,6 +3,7 @@
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge\&logo=python\&logoColor=white)
 ![Aiogram](https://img.shields.io/badge/Aiogram-2CA5E0?style=for-the-badge\&logo=telegram\&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge\&logo=postgresql\&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge\&logo=sqlalchemy\&logoColor=white)
 ![Alembic](https://img.shields.io/badge/Alembic-00A98F?style=for-the-badge\&logo=alembic\&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge\&logo=docker\&logoColor=white)
@@ -15,13 +16,13 @@
 
 Schedule Bot — это Telegram-бот для удобного просмотра школьного расписания ВМЛ.
 
-Бот позволяет быстро получить актуальную информацию о занятиях и изменениях без необходимости заходить на сайт школы.
+Бот позволяет быстро получить актуальную информацию о занятиях и заменах без необходимости заходить на сайт школы.
 
 ⚠️ Бот является неофициальным
 
 ## 📊 Статистика
 
-🚀 Ботом уже пользуется 20+ человек
+🚀 Ботом уже пользуется 21+ человек
 
 📈 Проект находится в активной разработке и продолжает расти
 
@@ -36,12 +37,13 @@ Schedule Bot — это Telegram-бот для удобного просмотр
 - ⚡ Кэширование расписания для ускорения работы
 
 ## 🧠 Как работает
-1. Бот отправляет POST-запрос к сайту школы
-2. Получает HTML-страницу с расписанием
-3. Парсит её с помощью BeautifulSoup
-4. Преобразует в структурированные данные
-5. Кэширует результат
-6. Отправляет пользователю
+1. Бот отправляет запрос к сайту школы
+2. Получает HTML-страницу с расписанием или CSV с заменами
+3. Парсит данные с помощью BeautifulSoup
+4. Преобразует их в структурированный формат
+5. Кэширует данные в Redis для ускорения работы и снижения нагрузки
+6. Сравнивает изменения и отправляет обновления пользователям
+7. Отправляет пользователю готовый ответ
 
 ## 🚀 Запуск проекта
 ### 1. Клонирование
@@ -80,8 +82,6 @@ docker-compose up --build
 
 7. 🏛️ История — 13:10-13:50 | каб. 223
 ```
-
----
 
 ## ⭐ Примечание
 

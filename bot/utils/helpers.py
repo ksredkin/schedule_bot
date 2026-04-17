@@ -9,7 +9,8 @@ from repositories.user_repository import UserRepository
 from utils.api_client import ApiClient
 from utils.logger import Logger
 from utils.parser import parse_schedule
-from utils.schedule_cache import ScheduleCache
+from utils.schedule_cache import get_schedule_from_cache, set_schedule_in_cache
+from utils.user_class_cache import get_user_class_from_cache, set_user_class_in_cache
 
 logger = Logger(__name__).get_logger()
 
@@ -186,6 +187,17 @@ async def resolve_grade(message: types.Message, command_name: str) -> str | None
         if not message.from_user:
             return None
 
+        user_class = await get_user_class_from_cache(message.from_user.id)
+
+        if user_class is not None:
+            if user_class is False:
+                await message.answer(
+                    f"🚫 <b>Ошибка:</b> не выбран класс. Используйте /set_my_class или /{command_name} {{class}}."
+                )
+                return None
+
+            return user_class
+
         user = await UserRepository.get_user_by_telegram_id(message.from_user.id)
 
         if not user or not user.grade:
@@ -196,6 +208,9 @@ async def resolve_grade(message: types.Message, command_name: str) -> str | None
             return None
 
         grade = str(user.grade)
+
+        await set_user_class_in_cache(message.from_user.id, grade)
+
         return grade
 
     elif len(parts) < 4:
@@ -218,8 +233,7 @@ async def resolve_grade(message: types.Message, command_name: str) -> str | None
 async def get_schedule_by_grade(
     message: types.Message, grade: str
 ) -> dict[str, dict[int, dict[str, str | None]]] | None:
-    cache = ScheduleCache()
-    rasp: dict[str, dict[int, dict[str, str | None]]] | None = cache.get(grade)
+    rasp: dict[str, dict[int, dict[str, str | None]]] | None = await get_schedule_from_cache(grade)
 
     if rasp:
         logger.info(f"Расписание для класса {grade} получено из кэша")
@@ -237,7 +251,7 @@ async def get_schedule_by_grade(
         await message.answer("🚫 Ошибка парсинга расписания.")
         return None
 
-    cache.set(grade, rasp)
+    await set_schedule_in_cache(grade, rasp)
     logger.info(f"Расписание для класса {grade} получено с сайта")
 
     return rasp

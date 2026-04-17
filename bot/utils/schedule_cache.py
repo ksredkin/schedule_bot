@@ -1,28 +1,22 @@
-import asyncio
+from redis_client.client import r
+from utils.logger import Logger
+import json
+from core.config import SCHEDULE_CACHE_EXPIRATION_SECONDS
 
-from core.config import MINUTES_TO_RESET_SCHEDULE_CACHE
+logger = Logger(__name__).get_logger()
 
+async def get_schedule_from_cache(grade: str) -> dict[str, dict[int, dict[str, str | None]]] | None:
+    schedule = await r.get(f"schedule:{grade}")
+    if schedule is None:
+        logger.info(f"Расписание для класса {grade} не найдено в кэше")
+    else:
+        logger.info(f"Расписание для класса {grade} найдено в кэше")
+    try:
+        return json.loads(schedule) if schedule else None
+    except Exception:
+        logger.warning("Не удалось распарсить кэш расписания, очищаем")
+        return None
 
-class ScheduleCache:
-    _instance = None
-    cache: dict[str, dict[str, dict[int, dict[str, str | None]]]] = {}
-
-    def __new__(cls) -> ScheduleCache:
-        if not cls._instance:
-            cls._instance = super().__new__(cls)
-            cls._instance.cache = {}
-        return cls._instance
-
-    def get(self, grade: str) -> dict[str, dict[int, dict[str, str | None]]] | None:
-        return self.cache.get(grade)
-
-    def set(
-        self, grade: str, schedule: dict[str, dict[int, dict[str, str | None]]]
-    ) -> None:
-        if grade not in self.cache:
-            self.cache[grade] = schedule
-            asyncio.create_task(self.reset_grade(grade))
-
-    async def reset_grade(self, grade: str) -> None:
-        await asyncio.sleep(MINUTES_TO_RESET_SCHEDULE_CACHE * 60)
-        self.cache.pop(grade)
+async def set_schedule_in_cache(grade: str, schedule: dict[str, dict[int, dict[str, str | None]]]) -> None:
+    await r.set(f"schedule:{grade}", json.dumps(schedule), ex=SCHEDULE_CACHE_EXPIRATION_SECONDS)
+    logger.info(f"Расписание для класса {grade} сохранено в кэше")

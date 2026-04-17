@@ -17,6 +17,7 @@ pytz = "^2026.1.post1"
 singbox2proxy = "^0.2.7"
 ruff = "^0.15.8"
 mypy = "^1.19.1"
+redis = "^7.4.0"
 
 [build-system]
 requires = ["poetry-core"]
