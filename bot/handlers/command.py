@@ -7,7 +7,6 @@ from aiogram.filters import Command, CommandStart
 from keyboards.inline import create_cancell_inline_keyboard
 from messages.common import start_message
 from repositories.user_repository import UserRepository
-from services.update_changes_cache_service import parse_changes_table_rows
 from utils.changes_cache import get_changes_from_cache
 from utils.formatters import (
     get_bell_message,
@@ -26,9 +25,9 @@ from utils.helpers import (
     get_time_to_bell,
     resolve_grade,
 )
-from utils.image_cache import set_image_id_in_cache, get_image_id_from_cache
+from utils.image_cache import get_image_id_from_cache, set_image_id_in_cache
 from utils.logger import Logger
-from utils.user_class_cache import set_user_class_in_cache, get_user_class_from_cache
+from utils.user_class_cache import get_user_class_from_cache, set_user_class_in_cache
 
 command_router = Router()
 logger = Logger(__name__).get_logger()
@@ -45,23 +44,35 @@ async def start(message: types.Message) -> None:
     user_class_in_cache = await get_user_class_from_cache(message.from_user.id)
 
     if user_class_in_cache is None:
-        logger.info(f"Класс пользователя @{message.from_user.username} не найден в кэше")
+        logger.info(
+            f"Класс пользователя @{message.from_user.username} не найден в кэше"
+        )
         user = await UserRepository.get_user_by_telegram_id(message.from_user.id)
 
         if not user:
-            logger.info(f"Пользователь @{message.from_user.username} не найден в базе данных, создается новый пользователь")
-            await UserRepository.create_user(telegram_id=message.from_user.id, grade=None)
+            logger.info(
+                f"Пользователь @{message.from_user.username} не найден в базе данных, создается новый пользователь"
+            )
+            await UserRepository.create_user(
+                telegram_id=message.from_user.id, grade=None
+            )
             await set_user_class_in_cache(message.from_user.id, None)
         else:
             if user.grade:
-                logger.info(f"Класс пользователя @{message.from_user.username} найден в базе данных: {user.grade}, сохраняется в кэше")
+                logger.info(
+                    f"Класс пользователя @{message.from_user.username} найден в базе данных: {user.grade}, сохраняется в кэше"
+                )
                 await set_user_class_in_cache(message.from_user.id, str(user.grade))
             else:
-                logger.info(f"Класс пользователя @{message.from_user.username} не установлен в базе данных")
+                logger.info(
+                    f"Класс пользователя @{message.from_user.username} не установлен в базе данных"
+                )
                 await set_user_class_in_cache(message.from_user.id, None)
 
     elif user_class_in_cache is False:
-        logger.info(f"Класс пользователя @{message.from_user.username} установлен как None в кэше")
+        logger.info(
+            f"Класс пользователя @{message.from_user.username} установлен как None в кэше"
+        )
 
     if await get_image_id_from_cache("start") is None:
         try:
@@ -315,5 +326,5 @@ async def changes(message: types.Message) -> None:
             "🚫 <b>Ошибка:</b> не удалось получить информацию о заменах. Попробуйте позже."
         )
         return
-    
+
     await message.answer(get_changes_message(changes, grade.lower()))

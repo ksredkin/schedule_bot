@@ -196,7 +196,7 @@ async def resolve_grade(message: types.Message, command_name: str) -> str | None
                 )
                 return None
 
-            return user_class
+            return str(user_class)
 
         user = await UserRepository.get_user_by_telegram_id(message.from_user.id)
 
@@ -233,7 +233,9 @@ async def resolve_grade(message: types.Message, command_name: str) -> str | None
 async def get_schedule_by_grade(
     message: types.Message, grade: str
 ) -> dict[str, dict[int, dict[str, str | None]]] | None:
-    rasp: dict[str, dict[int, dict[str, str | None]]] | None = await get_schedule_from_cache(grade)
+    rasp: (
+        dict[str, dict[int, dict[str, str | None]]] | None
+    ) = await get_schedule_from_cache(grade)
 
     if rasp:
         logger.info(f"Расписание для класса {grade} получено из кэша")

@@ -1,8 +1,8 @@
 from aiogram import F, Router, types
 
 from repositories.user_repository import UserRepository
-from utils.user_class_cache import set_user_class_in_cache
 from utils.logger import Logger
+from utils.user_class_cache import set_user_class_in_cache
 
 callback_router = Router()
 logger = Logger(__name__).get_logger()

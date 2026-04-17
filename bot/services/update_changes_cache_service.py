@@ -1,12 +1,12 @@
 import asyncio
 import re
-from utils.changes_cache import set_changes_in_cache, get_changes_from_cache
 
 from aiogram import Bot
 
 from core.config import MINUTES_TO_CHECK_CHANGES
 from repositories.user_repository import UserRepository
 from utils.api_client import ApiClient
+from utils.changes_cache import get_changes_from_cache, set_changes_in_cache
 from utils.formatters import get_changes_message
 from utils.helpers import get_changes
 from utils.logger import Logger
@@ -106,7 +106,8 @@ async def start_update_changes_cache_service(bot: Bot) -> None:
 
     if first_raw_rows:
         current_parsed_all = parse_changes_table_rows(first_raw_rows)
-        await set_changes_in_cache(current_parsed_all)
+        if current_parsed_all is not None:
+            await set_changes_in_cache(current_parsed_all)
     else:
         logger.warning("Не удалось получить новые данные, пропуск...")
 
