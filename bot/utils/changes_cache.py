@@ -1,6 +1,5 @@
 import json
 
-from core.config import CHANGES_CACHE_EXPIRATION_SECONDS
 from redis_client.client import r
 from utils.logger import Logger
 
@@ -23,5 +22,5 @@ async def get_changes_from_cache() -> dict[str, dict[str, list[dict[str, str]]]]
 async def set_changes_in_cache(
     changes: dict[str, dict[str, list[dict[str, str]]]],
 ) -> None:
-    await r.set("changes", json.dumps(changes), ex=CHANGES_CACHE_EXPIRATION_SECONDS)
+    await r.set("changes", json.dumps(changes))
     logger.info("Замены сохранены в кэше")
