@@ -40,8 +40,6 @@ services:
     image: redis:7
     container_name: schedule-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     networks:
       - schedule-redis-net
 
