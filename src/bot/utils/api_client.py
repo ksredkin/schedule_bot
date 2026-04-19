@@ -1,11 +1,11 @@
 import httpx
 
-from core.config import (
+from src.bot.core.config import (
     GET_CHANGES_FILE_TIMEOUT,
     GET_MAIN_PAGE_TIMEOUT,
     GET_SCHEDULE_TIMEOUT,
 )
-from utils.logger import Logger
+from src.bot.utils.logger import Logger
 
 logger = Logger(__name__).get_logger()
 

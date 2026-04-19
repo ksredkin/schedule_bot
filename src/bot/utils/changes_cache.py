@@ -1,7 +1,7 @@
 import json
 
-from redis_client.client import r
-from utils.logger import Logger
+from src.bot.redis_client.client import r
+from src.bot.utils.logger import Logger
 
 logger = Logger(__name__).get_logger()
 

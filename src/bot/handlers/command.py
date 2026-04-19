@@ -1,14 +1,18 @@
 from datetime import datetime
 
+import pytz
 from aiogram import Router, types
 from aiogram.exceptions import TelegramNetworkError
 from aiogram.filters import Command, CommandStart
 
-from keyboards.inline import create_cancell_inline_keyboard
-from messages.common import start_message
-from repositories.user_repository import UserRepository
-from utils.changes_cache import get_changes_from_cache
-from utils.formatters import (
+from src.bot.keyboards.inline import create_cancell_inline_keyboard
+from src.bot.messages.common import start_message
+from src.bot.repositories.user_repository import UserRepository
+from src.bot.services.schedule_service import get_schedule_by_grade
+from src.bot.services.user_service import resolve_grade
+from src.bot.utils.changes_cache import get_changes_from_cache
+from src.bot.utils.constants import classes, days_map
+from src.bot.utils.formatters import (
     get_bell_message,
     get_changes_message,
     get_lesson_message,
@@ -17,17 +21,13 @@ from utils.formatters import (
     get_schedule_today_message,
     get_schedule_tomorrow_message,
 )
-from utils.helpers import (
-    classes,
-    days_map,
-    get_current_lesson,
-    get_schedule_by_grade,
-    get_time_to_bell,
-    resolve_grade,
+from src.bot.utils.image_cache import get_image_id_from_cache, set_image_id_in_cache
+from src.bot.utils.logger import Logger
+from src.bot.utils.time_utils import get_current_lesson, get_time_to_bell
+from src.bot.utils.user_class_cache import (
+    get_user_class_from_cache,
+    set_user_class_in_cache,
 )
-from utils.image_cache import get_image_id_from_cache, set_image_id_in_cache
-from utils.logger import Logger
-from utils.user_class_cache import get_user_class_from_cache, set_user_class_in_cache
 
 command_router = Router()
 logger = Logger(__name__).get_logger()
@@ -116,9 +116,10 @@ async def schedule(message: types.Message) -> None:
         f"Пользователь @{message.from_user.username} вызвал команду /schedule для класса {grade}"
     )
 
-    rasp = await get_schedule_by_grade(message, grade)
+    rasp = await get_schedule_by_grade(grade)
 
     if not rasp:
+        await message.answer("🚫 Не удалось получить расписание. Попробуйте позже.")
         return
 
     await message.answer(get_schedule_message(rasp))
@@ -146,9 +147,10 @@ async def schedule_today(message: types.Message) -> None:
         f"Пользователь @{message.from_user.username} вызвал команду /schedule_today для класса {grade}"
     )
 
-    rasp = await get_schedule_by_grade(message, grade)
+    rasp = await get_schedule_by_grade(grade)
 
     if not rasp:
+        await message.answer("🚫 Не удалось получить расписание. Попробуйте позже.")
         return
 
     today_schedule = rasp.get(current_day)
@@ -182,9 +184,10 @@ async def schedule_tomorrow(message: types.Message) -> None:
         f"Пользователь @{message.from_user.username} вызвал команду /schedule_tomorrow для класса {grade}"
     )
 
-    rasp = await get_schedule_by_grade(message, grade)
+    rasp = await get_schedule_by_grade(grade)
 
     if not rasp:
+        await message.answer("🚫 Не удалось получить расписание. Попробуйте позже.")
         return
 
     tomorrow_schedule = rasp.get(day_tomorrow)
@@ -220,15 +223,17 @@ async def lesson(message: types.Message) -> None:
         f"Пользователь @{message.from_user.username} вызвал команду /lesson для класса {grade}"
     )
 
-    rasp = await get_schedule_by_grade(message, grade)
+    rasp = await get_schedule_by_grade(grade)
 
     if not rasp:
+        await message.answer("🚫 Не удалось получить расписание. Попробуйте позже.")
         return
 
-    number, lesson = get_current_lesson(rasp)
+    now = datetime.now(pytz.timezone("Europe/Moscow"))
+    number, lesson = get_current_lesson(rasp, now)
 
     if not number or not lesson:
-        next_time_to_bell, next_lesson = get_time_to_bell(rasp)
+        next_time_to_bell, next_lesson = get_time_to_bell(rasp, now)
 
         if not next_lesson:
             await message.answer("🏝️ Сейчас нет уроков.")
@@ -272,12 +277,14 @@ async def bell(message: types.Message) -> None:
         f"Пользователь @{message.from_user.username} вызвал команду /bell для класса {grade}"
     )
 
-    rasp = await get_schedule_by_grade(message, grade)
+    rasp = await get_schedule_by_grade(grade)
 
     if not rasp:
+        await message.answer("🚫 Не удалось получить расписание. Попробуйте позже.")
         return
 
-    time_to_bell, _ = get_time_to_bell(rasp)
+    now = datetime.now(pytz.timezone("Europe/Moscow"))
+    time_to_bell, _ = get_time_to_bell(rasp, now)
 
     if not time_to_bell:
         await message.answer("🏝️ Сейчас нет уроков.")

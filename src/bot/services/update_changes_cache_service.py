@@ -3,14 +3,14 @@ import re
 
 from aiogram import Bot
 
-from core.config import MINUTES_TO_CHECK_CHANGES
-from repositories.user_repository import UserRepository
-from utils.api_client import ApiClient
-from utils.changes_cache import get_changes_from_cache, set_changes_in_cache
-from utils.formatters import get_changes_message
-from utils.helpers import get_changes
-from utils.logger import Logger
-from utils.parser import parse_changes_url
+from src.bot.core.config import MINUTES_TO_CHECK_CHANGES
+from src.bot.repositories.user_repository import UserRepository
+from src.bot.utils.api_client import ApiClient
+from src.bot.utils.changes_cache import get_changes_from_cache, set_changes_in_cache
+from src.bot.utils.csv_utils import get_changes
+from src.bot.utils.formatters import get_changes_message
+from src.bot.utils.logger import Logger
+from src.bot.utils.parser import parse_changes_url
 
 logger = Logger(__name__).get_logger()
 

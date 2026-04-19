@@ -1,7 +1,7 @@
 import logging
 import os
 
-from core.config import LOGS_PATH
+from src.bot.core.config import LOGS_PATH
 
 
 class Logger:

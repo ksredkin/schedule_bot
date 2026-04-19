@@ -1,8 +1,8 @@
 from sqlalchemy import select
 
-from database.connection import session
-from database.orm_models import User
-from utils.logger import Logger
+from src.bot.database.connection import session
+from src.bot.database.orm_models import User
+from src.bot.utils.logger import Logger
 
 logger = Logger(__name__).get_logger()
 

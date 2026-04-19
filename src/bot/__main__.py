@@ -11,12 +11,14 @@ from aiohttp_socks._errors import ProxyTimeoutError
 from dotenv import load_dotenv
 from singbox2proxy import SingBoxProxy
 
-from core.config import BOT_PHOTO_PATH
-from handlers.callback import callback_router
-from handlers.command import command_router
-from messages.common import before_start_description, profile_description
-from services.update_changes_cache_service import start_update_changes_cache_service
-from utils.logger import Logger
+from src.bot.core.config import BOT_PHOTO_PATH
+from src.bot.handlers.callback import callback_router
+from src.bot.handlers.command import command_router
+from src.bot.messages.common import before_start_description, profile_description
+from src.bot.services.update_changes_cache_service import (
+    start_update_changes_cache_service,
+)
+from src.bot.utils.logger import Logger
 
 logger = Logger(__name__).get_logger()
 

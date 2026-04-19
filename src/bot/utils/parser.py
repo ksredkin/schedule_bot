@@ -3,7 +3,7 @@ from typing import Any, Dict
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
-from utils.logger import Logger
+from src.bot.utils.logger import Logger
 
 logger = Logger(__name__).get_logger()
 
