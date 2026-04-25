@@ -81,7 +81,7 @@ async def start(message: types.Message) -> None:
 
     if await get_image_id_from_cache("start") is None:
         try:
-            image = types.FSInputFile("./img/bot.png")
+            image = types.FSInputFile("./src/bot/img/bot.png")
             message = await message.answer_photo(image, caption=start_message)
 
             if not message.photo:

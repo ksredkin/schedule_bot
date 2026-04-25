@@ -55,5 +55,5 @@ class ApiClient:
 
             return html
         except Exception as e:
-            logger.warning(f"Не удалось получить файл по ссылке: {url} . Ошибка: {e}")
+            logger.warning(f"Не удалось получить файл по ссылке: {url}. Ошибка: {e}")
             return None
