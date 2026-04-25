@@ -10,8 +10,6 @@
 ![BeautifulSoup](https://img.shields.io/badge/BeautifulSoup-4CAF50?style=for-the-badge)
 ![Poetry](https://img.shields.io/badge/Poetry-60A5FA?style=for-the-badge\&logo=poetry\&logoColor=white)
 
----
-
 ## 📌 Описание
 
 Schedule Bot — это Telegram-бот для удобного просмотра школьного расписания ВМЛ.
@@ -22,7 +20,7 @@ Schedule Bot — это Telegram-бот для удобного просмотр
 
 ## 📊 Статистика
 
-🚀 Ботом уже пользуется 21+ человек
+🚀 Ботом уже пользуется 27+ человек
 
 📈 Проект находится в активной разработке и продолжает расти
 
