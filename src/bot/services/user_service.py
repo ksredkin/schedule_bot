@@ -1,6 +1,11 @@
 from aiogram import types
 
-from src.bot.repositories.user_repository import UserRepository
+from src.bot.core.exceptions import (
+    GradeNotFoundError,
+    GradeNotSelectedError,
+    InvalidCommandError,
+)
+from src.bot.interfaces.user_repository import UserRepositoryInterface
 from src.bot.utils.constants import classes
 from src.bot.utils.user_class_cache import (
     get_user_class_from_cache,
@@ -8,8 +13,15 @@ from src.bot.utils.user_class_cache import (
 )
 
 
-async def resolve_grade(message: types.Message, command_name: str) -> str | None:
-    if not message.text:
+async def resolve_grade(
+    message: types.Message,
+    user_repo: UserRepositoryInterface,
+    command_name: str = "cmd",
+) -> str | None:
+    if not message:
+        return None
+
+    if not message.text or not message.from_user:
         return None
 
     parts = message.text.split()
@@ -22,21 +34,18 @@ async def resolve_grade(message: types.Message, command_name: str) -> str | None
 
         if user_class is not None:
             if user_class is False:
-                await message.answer(
-                    f"🚫 <b>Ошибка:</b> не выбран класс. Используйте /set_my_class или /{command_name} {{class}}."
+                raise GradeNotSelectedError(
+                    f"не выбран класс. Используйте /set_my_class или /{command_name} {{class}}."
                 )
-                return None
 
             return str(user_class)
 
-        user = await UserRepository.get_user_by_telegram_id(message.from_user.id)
+        user = await user_repo.get_user_by_telegram_id(message.from_user.id)
 
         if not user or not user.grade:
-            await message.answer(
-                f"🚫 <b>Ошибка:</b> не выбран класс. Используйте /set_my_class или /{command_name}"
-                + " {class}."
+            raise GradeNotSelectedError(
+                f"не выбран класс. Используйте /set_my_class или /{command_name} {{class}}."
             )
-            return None
 
         grade = str(user.grade)
 
@@ -48,14 +57,11 @@ async def resolve_grade(message: types.Message, command_name: str) -> str | None
         grade = " ".join(parts[1:]).upper()
 
         if grade not in classes:
-            await message.answer("🚫 <b>Ошибка:</b> такого класса нет.")
-            return None
+            raise GradeNotFoundError("такого класса нет.")
 
         return grade
 
     else:
-        await message.answer(
-            f"🚫 <b>Ошибка:</b> неверный формат. Используйте /{command_name}"
-            + " {class}."
+        raise InvalidCommandError(
+            f"неверный формат. Используйте /{command_name} {{class}}."
         )
-        return None

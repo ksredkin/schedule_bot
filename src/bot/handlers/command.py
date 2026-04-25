@@ -5,6 +5,11 @@ from aiogram import Router, types
 from aiogram.exceptions import TelegramNetworkError
 from aiogram.filters import Command, CommandStart
 
+from src.bot.core.exceptions import (
+    GradeNotFoundError,
+    GradeNotSelectedError,
+    InvalidCommandError,
+)
 from src.bot.keyboards.inline import create_cancell_inline_keyboard
 from src.bot.messages.common import start_message
 from src.bot.repositories.user_repository import UserRepository
@@ -47,13 +52,13 @@ async def start(message: types.Message) -> None:
         logger.info(
             f"Класс пользователя @{message.from_user.username} не найден в кэше"
         )
-        user = await UserRepository.get_user_by_telegram_id(message.from_user.id)
+        user = await UserRepository().get_user_by_telegram_id(message.from_user.id)
 
         if not user:
             logger.info(
                 f"Пользователь @{message.from_user.username} не найден в базе данных, создается новый пользователь"
             )
-            await UserRepository.create_user(
+            await UserRepository().create_user(
                 telegram_id=message.from_user.id, grade=None
             )
             await set_user_class_in_cache(message.from_user.id, None)
@@ -107,7 +112,11 @@ async def schedule(message: types.Message) -> None:
         logger.warning("Получено сообщение без информации о пользователе")
         return
 
-    grade = await resolve_grade(message, "schedule")
+    try:
+        grade = await resolve_grade(message, UserRepository(), "schedule")
+    except (GradeNotSelectedError, GradeNotFoundError, InvalidCommandError) as e:
+        await message.answer(f"🚫 <b>Ошибка:</b> {str(e)}")
+        return
 
     if not grade:
         return
@@ -138,7 +147,11 @@ async def schedule_today(message: types.Message) -> None:
         await message.answer("🏝️ Сегодня выходной!")
         return
 
-    grade = await resolve_grade(message, "schedule_today")
+    try:
+        grade = await resolve_grade(message, UserRepository(), "schedule_today")
+    except (GradeNotSelectedError, GradeNotFoundError, InvalidCommandError) as e:
+        await message.answer(f"🚫 <b>Ошибка:</b> {str(e)}")
+        return
 
     if not grade:
         return
@@ -175,7 +188,11 @@ async def schedule_tomorrow(message: types.Message) -> None:
         await message.answer("🏝️ Завтра выходной!")
         return
 
-    grade = await resolve_grade(message, "schedule_tomorrow")
+    try:
+        grade = await resolve_grade(message, UserRepository(), "schedule_tomorrow")
+    except (GradeNotSelectedError, GradeNotFoundError, InvalidCommandError) as e:
+        await message.answer(f"🚫 <b>Ошибка:</b> {str(e)}")
+        return
 
     if not grade:
         return
@@ -214,7 +231,11 @@ async def lesson(message: types.Message) -> None:
         await message.answer("🏝️ Сегодня выходной!")
         return
 
-    grade = await resolve_grade(message, "lesson")
+    try:
+        grade = await resolve_grade(message, UserRepository(), "lesson")
+    except (GradeNotSelectedError, GradeNotFoundError, InvalidCommandError) as e:
+        await message.answer(f"🚫 <b>Ошибка:</b> {str(e)}")
+        return
 
     if not grade:
         return
@@ -268,7 +289,11 @@ async def bell(message: types.Message) -> None:
         await message.answer("🏝️ Сегодня выходной!")
         return
 
-    grade = await resolve_grade(message, "bell")
+    try:
+        grade = await resolve_grade(message, UserRepository(), "bell")
+    except (GradeNotSelectedError, GradeNotFoundError, InvalidCommandError) as e:
+        await message.answer(f"🚫 <b>Ошибка:</b> {str(e)}")
+        return
 
     if not grade:
         return
@@ -317,7 +342,11 @@ async def changes(message: types.Message) -> None:
         logger.warning("Получено сообщение без информации о пользователе")
         return
 
-    grade = await resolve_grade(message, "changes")
+    try:
+        grade = await resolve_grade(message, UserRepository(), "changes")
+    except (GradeNotSelectedError, GradeNotFoundError, InvalidCommandError) as e:
+        await message.answer(f"🚫 <b>Ошибка:</b> {str(e)}")
+        return
 
     if not grade:
         return

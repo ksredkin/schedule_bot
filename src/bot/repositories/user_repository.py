@@ -2,12 +2,13 @@ from sqlalchemy import select
 
 from src.bot.database.connection import session
 from src.bot.database.orm_models import User
+from src.bot.interfaces.user_repository import UserRepositoryInterface
 from src.bot.utils.logger import Logger
 
 logger = Logger(__name__).get_logger()
 
 
-class UserRepository:
+class UserRepository(UserRepositoryInterface):
     @staticmethod
     async def get_users() -> list[User] | None:
         async with session() as conn:
