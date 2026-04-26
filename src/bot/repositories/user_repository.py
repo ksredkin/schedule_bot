@@ -33,7 +33,7 @@ class UserRepository(UserRepositoryInterface):
                 return user
             except Exception as e:
                 logger.critical(
-                    f"Произошла ошибка при попытке получить всех пользователей из бд: {e}"
+                    f"Произошла ошибка при попытке получить пользователя из бд по telegram_id: {e}"
                 )
                 return None
 
@@ -74,6 +74,6 @@ class UserRepository(UserRepositoryInterface):
                 return user
             except Exception as e:
                 logger.critical(
-                    f"Произошла ошибка при попытке создать пользователя в бд: {e}"
+                    f"Произошла ошибка при попытке обновить класс пользователя в бд: {e}"
                 )
                 return None
