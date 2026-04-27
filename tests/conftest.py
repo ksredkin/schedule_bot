@@ -1,3 +1,4 @@
+import fakeredis.aioredis
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
@@ -14,3 +15,8 @@ async def sessionmaker() -> async_sessionmaker:
     sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
 
     return sessionmaker
+
+
+@pytest.fixture
+def fake_redis():
+    return fakeredis.aioredis.FakeRedis(decode_responses=True)

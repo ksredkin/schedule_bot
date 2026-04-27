@@ -20,7 +20,7 @@ test_schedule_html = """<!DOCTYPE html>
 
 correct_test_schedule = {
     "Понедельник": {
-        1: {
+        "1": {
             "time": "08:00 - 08:40",
             "name": "Разговор о важном",
             "group": None,

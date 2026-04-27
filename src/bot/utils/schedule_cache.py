@@ -9,7 +9,7 @@ logger = Logger(__name__).get_logger()
 
 async def get_schedule_from_cache(
     grade: str,
-) -> dict[str, dict[int, dict[str, str | None]]] | None:
+) -> dict[str, dict[str, dict[str, str | None]]] | None:
     schedule = await r.get(f"schedule:{grade}")
     if schedule is None:
         logger.info(f"Расписание для класса {grade} не найдено в кэше")
@@ -23,7 +23,7 @@ async def get_schedule_from_cache(
 
 
 async def set_schedule_in_cache(
-    grade: str, schedule: dict[str, dict[int, dict[str, str | None]]]
+    grade: str, schedule: dict[str, dict[str, dict[str, str | None]]]
 ) -> None:
     await r.set(
         f"schedule:{grade}", json.dumps(schedule), ex=SCHEDULE_CACHE_EXPIRATION_SECONDS

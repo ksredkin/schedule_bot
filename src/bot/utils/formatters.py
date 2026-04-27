@@ -31,7 +31,7 @@ emoji_prefixes = {
 }
 
 
-def get_schedule_message(schedule: Dict[str, Dict[int, Dict[str, Any]]]) -> str:
+def get_schedule_message(schedule: Dict[str, Dict[str, Dict[str, Any]]]) -> str:
     text = "<b>🗓️ Расписание на неделю:</b>\n\n"
 
     for day, lessons in schedule.items():
@@ -80,7 +80,7 @@ def get_schedule_message(schedule: Dict[str, Dict[int, Dict[str, Any]]]) -> str:
 
 
 def get_schedule_today_message(
-    schedule: Dict[int, Dict[str, Any]], day_of_week: str
+    schedule: Dict[str, Dict[str, Any]], day_of_week: str
 ) -> str:
     text = f"<b>🗓️ Расписание на сегодня ({day_of_week.lower()}):</b>\n\n"
 
@@ -124,7 +124,7 @@ def get_schedule_today_message(
 
 
 def get_schedule_tomorrow_message(
-    schedule: Dict[int, Dict[str, Any]], day_of_week: str
+    schedule: Dict[str, Dict[str, Any]], day_of_week: str
 ) -> str:
     text = f"<b>🗓️ Расписание на завтра ({day_of_week}):</b>\n\n"
 
@@ -167,7 +167,7 @@ def get_schedule_tomorrow_message(
     return text
 
 
-def get_lesson_message(number: int, lesson: Dict[str, Any]) -> str:
+def get_lesson_message(number: str, lesson: Dict[str, Any]) -> str:
     name = lesson.get("name")
     time = lesson.get("time")
     group = lesson.get("group")

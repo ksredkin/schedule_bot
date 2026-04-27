@@ -62,7 +62,7 @@ async def test_get_schedule_by_grade_without_redis(mocker: Any) -> None:
 
     assert result == {
         "Понедельник": {
-            1: {
+            "1": {
                 "cab": "137",
                 "group": None,
                 "name": "Разговор о важном",

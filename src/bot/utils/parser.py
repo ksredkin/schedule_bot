@@ -8,7 +8,7 @@ from src.bot.utils.logger import Logger
 logger = Logger(__name__).get_logger()
 
 
-def parse_schedule(html: str) -> Dict[str, Dict[int, Dict[str, Any]]] | None:
+def parse_schedule(html: str) -> Dict[str, Dict[str, Dict[str, Any]]] | None:
     try:
         soup = BeautifulSoup(html, "lxml")
 
@@ -20,10 +20,10 @@ def parse_schedule(html: str) -> Dict[str, Dict[int, Dict[str, Any]]] | None:
 
         rows = table.find_all("tr")
 
-        result: Dict[str, Dict[int, Dict[str, Any]]] = {}
+        result: Dict[str, Dict[str, Dict[str, Any]]] = {}
 
         current_day: str | None = None
-        current_lesson: int | None = None
+        current_lesson: str | None = None
 
         for row in rows:
             if row.find("h3"):
@@ -44,7 +44,7 @@ def parse_schedule(html: str) -> Dict[str, Dict[int, Dict[str, Any]]] | None:
             cab = tds[4].get_text(strip=True)
 
             if number and current_day:
-                current_lesson = int(number)
+                current_lesson = number
 
                 result[current_day][current_lesson] = {
                     "time": time,

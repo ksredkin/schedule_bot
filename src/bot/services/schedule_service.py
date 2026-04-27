@@ -8,7 +8,7 @@ logger = Logger(__name__).get_logger()
 
 async def get_schedule_by_grade(
     grade: str,
-) -> dict[str, dict[int, dict[str, str | None]]] | None:
+) -> dict[str, dict[str, dict[str, str | None]]] | None:
     rasp = await get_schedule_from_cache(grade)
 
     if rasp:

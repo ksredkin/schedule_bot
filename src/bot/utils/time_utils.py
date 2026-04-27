@@ -14,8 +14,8 @@ def parse_time_range(time_str: str) -> tuple[time, time] | tuple[None, None]:
 
 
 def get_current_lesson(
-    schedule: dict[str, dict[int, dict[str, str | None]]], now: datetime
-) -> tuple[int, dict[str, str | None]] | tuple[None, None]:
+    schedule: dict[str, dict[str, dict[str, str | None]]], now: datetime
+) -> tuple[str, dict[str, str | None]] | tuple[None, None]:
     if not isinstance(schedule, dict) or not isinstance(now, datetime):
         return None, None
 
@@ -41,7 +41,7 @@ def get_current_lesson(
 
 
 def get_time_to_bell(
-    schedule: dict[str, dict[int, dict[str, str | None]]], now: datetime
+    schedule: dict[str, dict[str, dict[str, str | None]]], now: datetime
 ) -> tuple[None, None] | tuple[timedelta, dict[str, str | None]]:
     print(type(schedule))
     print(type(now))
