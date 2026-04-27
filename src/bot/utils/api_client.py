@@ -23,7 +23,7 @@ class ApiClient:
                 )
                 html = response.text
 
-            return html
+            return html if response.status_code == 200 else None
         except Exception as e:
             logger.warning(
                 f"Не удалось получить расписание для класса {grade} с сайта школы: {e}"
@@ -39,7 +39,7 @@ class ApiClient:
                 response = await client.get(url, timeout=GET_MAIN_PAGE_TIMEOUT)
                 html = response.text
 
-            return html
+            return html if response.status_code == 200 else None
         except Exception as e:
             logger.warning(f"Не удалось получить главную страницу сайта школы: {e}")
             return None
@@ -53,7 +53,7 @@ class ApiClient:
                 )
                 html = response.text
 
-            return html
+            return html if response.status_code == 200 else None
         except Exception as e:
             logger.warning(f"Не удалось получить файл по ссылке: {url}. Ошибка: {e}")
             return None
