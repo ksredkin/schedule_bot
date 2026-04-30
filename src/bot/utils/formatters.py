@@ -34,6 +34,10 @@ emoji_prefixes = {
 def get_schedule_message(schedule: Dict[str, Dict[str, Dict[str, Any]]]) -> str:
     text = "<b>🗓️ Расписание на неделю:</b>\n\n"
 
+    if not schedule:
+        text += "Уроков нет\n\n"
+        return text
+
     for day, lessons in schedule.items():
         text += f"<b>📅 {day}</b>\n"
 
@@ -126,7 +130,7 @@ def get_schedule_today_message(
 def get_schedule_tomorrow_message(
     schedule: Dict[str, Dict[str, Any]], day_of_week: str
 ) -> str:
-    text = f"<b>🗓️ Расписание на завтра ({day_of_week}):</b>\n\n"
+    text = f"<b>🗓️ Расписание на завтра ({day_of_week.lower()}):</b>\n\n"
 
     if not schedule:
         text += "Уроков нет"
@@ -168,6 +172,12 @@ def get_schedule_tomorrow_message(
 
 
 def get_lesson_message(number: str, lesson: Dict[str, Any]) -> str:
+    if not isinstance(number, str):
+        return "Ошибка: номер урока не найден"
+
+    if not isinstance(lesson, dict):
+        return "Ошибка: данные урока не найдены"
+
     name = lesson.get("name")
     time = lesson.get("time")
     group = lesson.get("group")
@@ -256,6 +266,9 @@ def get_next_lesson_message(
 
 
 def get_bell_message(time_to_bell: timedelta) -> str:
+    if not isinstance(time_to_bell, timedelta):
+        return "Ошибка: данные времени до звонка не найдены"
+
     minutes: int = int(time_to_bell.total_seconds() // 60)
     seconds: int = int(time_to_bell.total_seconds() % 60)
 
@@ -265,6 +278,9 @@ def get_bell_message(time_to_bell: timedelta) -> str:
 def get_changes_message(
     all_changes: Dict[str, Dict[str, List[Dict[str, str]]]], _grade: str
 ) -> str:
+    if not isinstance(all_changes, dict) or not isinstance(_grade, str):
+        return "Ошибка: данные замен не найдены"
+
     _grade = _grade.lower().strip()
     text = f"<b>🔄 Замены уроков для {_grade.upper()}:</b>\n\n"
 
@@ -289,7 +305,7 @@ def get_changes_message(
 
                 if teacher and teacher.lower() != "нет":
                     text += f" ({teacher})"
-                elif teacher.lower() == "нет":
+                elif teacher and teacher.lower() == "нет":
                     text += " (❌ Урока нет)"
 
                 if room:
