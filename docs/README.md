@@ -9,6 +9,7 @@
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge\&logo=docker\&logoColor=white)
 ![BeautifulSoup](https://img.shields.io/badge/BeautifulSoup-4CAF50?style=for-the-badge)
 ![Poetry](https://img.shields.io/badge/Poetry-60A5FA?style=for-the-badge\&logo=poetry\&logoColor=white)
+![Pytest](https://img.shields.io/badge/Pytest-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
 
 ## 📌 Описание
 
@@ -18,9 +19,11 @@ Schedule Bot — это Telegram-бот для удобного просмотр
 
 ⚠️ Бот является неофициальным
 
-## 📊 Статистика
+## 📊 Статистика и качество
 
-🚀 Ботом уже пользуется 27+ человек
+🚀 Ботом уже пользуется **27+ человек**
+
+🧪 Покрытие кода тестами: **62%**
 
 📈 Проект находится в активной разработке и продолжает расти
 
@@ -56,7 +59,14 @@ cp .env.example .env
 nano .env
 ```
 
-### 3. Запуск через Docker
+### 3. Запуск тестов
+Для проверки стабильности системы перед запуском:
+
+```bash
+pytest
+```
+
+### 4. Запуск через Docker
 ```bash
 docker-compose up --build
 ```
