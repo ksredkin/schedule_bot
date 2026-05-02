@@ -58,3 +58,6 @@ ignore_errors = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+
+[alembic]
+script_location = alembic
