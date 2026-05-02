@@ -51,5 +51,5 @@ jobs:
           script: |
             cd ~/schedule-bot
             git pull origin master
-            docker-compose up -d --build
-            docker-compose exec -T bot alembic upgrade head
+            docker compose up -d --build
+            docker compose exec -T bot alembic upgrade head
